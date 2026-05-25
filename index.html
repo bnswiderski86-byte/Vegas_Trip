@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <title>Caesars Palace · Las Vegas Trip Planner · Aug 17–20</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Lato:wght@300;400;500&display=swap');
@@ -14,8 +14,9 @@
   --card-radius:10px;--tab-radius:8px;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Lato',sans-serif;background:var(--bg2);color:var(--text);min-height:100vh;}
-.app{max-width:760px;margin:0 auto;background:var(--bg);min-height:100vh;box-shadow:0 0 40px rgba(0,0,0,0.1);}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+body{font-family:'Lato',sans-serif;background:var(--bg2);color:var(--text);min-height:100vh;overflow-x:hidden;}
+.app{max-width:760px;width:100%;margin:0 auto;background:var(--bg);min-height:100vh;box-shadow:0 0 40px rgba(0,0,0,0.1);overflow-x:hidden;}
 .hero{width:100%;height:200px;display:block;background:#1a0f04;position:relative;overflow:hidden;}
 .hero svg{width:100%;height:100%;}
 .tabs{display:flex;gap:6px;padding:0.85rem 1.25rem 0;flex-wrap:wrap;background:var(--bg);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
@@ -89,7 +90,27 @@ body{font-family:'Lato',sans-serif;background:var(--bg2);color:var(--text);min-h
 .plan-footer{text-align:center;padding:1rem 0 0;}
 .clear-all-btn{font-size:12px;color:var(--text3);background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:4px;transition:all 0.15s;}
 .clear-all-btn:hover{color:var(--danger);background:var(--danger-bg);}
-@media(max-width:520px){.tabs{gap:4px;padding:0.6rem 0.75rem 0;}.tab-btn{padding:5px 10px;font-size:11px;}.section{padding:1rem 0.75rem;}.flight-banner{flex-direction:column;gap:10px;}}
+@media(max-width:600px){
+  .tabs{gap:4px;padding:0.6rem 0.75rem 0;}
+  .tab-btn{padding:5px 9px;font-size:11px;}
+  .section{padding:1rem 0.75rem;}
+  .flight-banner{flex-direction:column;gap:10px;}
+  .card{padding:0.75rem 1rem;}
+  .card-header{flex-direction:column;gap:8px;}
+  .card-actions{width:100%;justify-content:flex-start;}
+  .add-widget{width:100%;}
+  .day-sel{flex:1;max-width:none;}
+  .add-btn{flex-shrink:0;}
+  .price-table{font-size:10px;}
+  .price-table th,.price-table td{padding:3px 4px 3px 0;}
+  .plan-name{font-size:12px;}
+  .hero{height:150px;}
+}
+@media(max-width:400px){
+  .tab-btn{padding:4px 7px;font-size:10px;}
+  .hero{height:120px;}
+  .card-title{font-size:13px;}
+}
 </style>
 </head>
 <body>
@@ -124,7 +145,7 @@ body{font-family:'Lato',sans-serif;background:var(--bg2);color:var(--text);min-h
 </g>
 <text x="380" y="102" text-anchor="middle" font-family="Georgia,serif" font-size="32" font-weight="bold" fill="#F5D87A" letter-spacing="8">CAESARS PALACE</text>
 <text x="380" y="128" text-anchor="middle" font-family="Georgia,serif" font-size="13" fill="#C9A84C" letter-spacing="4">LAS VEGAS · AUG 17 – 20</text>
-<text x="380" y="150" text-anchor="middle" font-family="Georgia,serif" font-size="11" fill="#8a6820" letter-spacing="3" font-style="italic">Octavius Tower · Your Trip Guide</text>
+<text x="380" y="150" text-anchor="middle" font-family="Georgia,serif" font-size="11" fill="#8a6820" letter-spacing="3" font-style="italic">Brandi & Tony's Trip Guide</text>
 <g fill="#C9A84C" opacity="0.35"><rect x="220" y="166" width="320" height="1"/><polygon points="220,163 226,169 220,174"/><polygon points="540,163 534,169 540,174"/></g>
 </svg>
 </div>
@@ -220,24 +241,24 @@ const DAYS=[
 
 const ALL_ITEMS=[
   // FREE
-  {id:'f1',name:'Forum Shops + Fall of Atlantis show',cost:'Free',sub:'On-site',walk:'attached',desc:'Roman-themed luxury mall attached directly to Caesars. Fall of Atlantis animatronic show runs free every hour noon–8pm (Thu–Mon). Great midday AC escape.'},
-  {id:'f2',name:'Fountain of the Gods & Trevi Fountain',cost:'Free',sub:'On-site',walk:'attached',desc:'Roman fountain replicas inside Caesars — excellent photo stops while wandering the Forum Shops.'},
-  {id:'f17',name:'Garden of the Gods Pool',cost:'Free for guests',sub:'On-site',walk:'attached',desc:'Seven pools, 48 cabanas, 65 daybeds, swim-up blackjack. Get there at open to claim a lounger before they fill up.'},
-  {id:'f18',name:'Venus Pool (adults-only)',cost:'Free for guests',sub:'On-site',walk:'attached',desc:'Adults-only pool with an air-conditioned bar. More relaxed vibe than the main pool complex.'},
-  {id:'f3',name:'Bellagio Conservatory & Botanical Gardens',cost:'Free',sub:'Bellagio · 5 min walk',walk:'5min',desc:'14,000 sq ft of seasonal floral installations. Open 24 hours. Go before 9am for best photos with almost no crowds.'},
-  {id:'f4',name:'Bellagio Fountain Show',cost:'Free',sub:'5 min walk · Best at night',walk:'5min',desc:'Every 30 min from 3pm, every 15 min 8pm–midnight. 1,200 nozzles, water reaches 460 ft. Best experienced after dark from the lakeside railing.'},
-  {id:'f5',name:'Chihuly glass ceiling (Bellagio lobby)',cost:'Free',sub:'Bellagio · 5 min walk',walk:'5min',desc:'Fiori di Como — 2,000-piece hand-blown glass sculpture covering the entire Bellagio lobby ceiling. Free to walk in and view at any hour.'},
-  {id:'f6',name:"World's largest chocolate fountain",cost:'Free to view',sub:'Bellagio Patisserie · 5 min walk',walk:'5min',desc:'14-foot tall chocolate waterfall right next to the Conservatory. Free to view, pastries available to buy.'},
-  {id:'f7',name:'Flamingo Wildlife Habitat',cost:'Free',sub:'Flamingo Hotel · 5 min walk',walk:'5min',desc:'15-acre free garden with Chilean flamingos, koi ponds, turtles, parrots, and waterfalls. Daily keeper talk at 10am.'},
-  {id:'f8',name:'Eiffel Tower exterior + Paris walk-through',cost:'Free',sub:'Paris Las Vegas · 5 min walk',walk:'5min',desc:'Free to photograph outside. Hotel also has a replica Pont Alexandre III bridge inside — free walk-through.'},
-  {id:'f15',name:'Eiffel Tower Viewing Deck',cost:'$29/person',sub:'Paris Las Vegas · 5 min walk',walk:'5min',desc:'Best panoramic Strip views in this stretch, spectacular at night overlooking the Bellagio fountains. Open noon–midnight.'},
-  {id:'f9',name:'LINQ Promenade stroll',cost:'Free',sub:'5 min walk',walk:'5min',desc:'Open-air promenade with 3D murals, choreographed light show, and free live entertainment most nights.'},
-  {id:'f10',name:"Grand Canal Shoppes + St. Mark's Square",cost:'Free',sub:'Venetian Resort · 10 min walk',walk:'10min',desc:"Quarter-mile Venice replica with indoor canal, painted sky ceiling, gondoliers singing, and free concerts in St. Mark's Square."},
-  {id:'f11',name:'Palazzo Waterfall Atrium + LOVE sculpture',cost:'Free',sub:'Venetian/Palazzo · 10 min walk',walk:'10min',desc:'Colorful multi-story waterfall atrium and the giant LOVE lettering. Popular photo spots, free to walk through.'},
-  {id:'f16',name:'Madame Tussauds',cost:'~$30/person',sub:'Venetian · 10 min walk',walk:'10min',desc:'Air-conditioned wax museum with Marvel 4D movie included. Great midday heat escape. Open daily 10am–8pm.'},
-  {id:'f12',name:"Gilley's Saloon line dancing",cost:'Free',sub:'Treasure Island · 10 min walk · Mon–Thu 7–8pm',walk:'10min',desc:'Free line dancing lessons Mon–Thu 7–8pm. No cover charge, no drink minimum.'},
-  {id:'f13',name:'Wynn Botanical Gardens',cost:'Free',sub:'Wynn Las Vegas · 12–15 min walk',walk:'15min',desc:'Free outdoor floral garden with large sculptural installations and a life-size carousel made from real flowers.'},
-  {id:'f14',name:'Lake of Dreams show',cost:'Free',sub:'Wynn · 12–15 min walk · Nightly from dusk',walk:'15min',desc:'Free nightly show every 30 min from dusk — puppetry, light effects, 90-ft waterfall. Watch from Bar Parasol inside Wynn.'},
+  {id:'f1',name:'Forum Shops + Fall of Atlantis show',cost:'Free',sub:'On-site',walk:'attached',type:'free',desc:'Roman-themed luxury mall attached directly to Caesars. Fall of Atlantis animatronic show runs free every hour noon–8pm (Thu–Mon). Great midday AC escape.'},
+  {id:'f2',name:'Fountain of the Gods & Trevi Fountain',cost:'Free',sub:'On-site',walk:'attached',type:'free',desc:'Roman fountain replicas inside Caesars — excellent photo stops while wandering the Forum Shops.'},
+  {id:'f17',name:'Garden of the Gods Pool',cost:'Free for guests',sub:'On-site',walk:'attached',type:'free',desc:'Seven pools, 48 cabanas, 65 daybeds, swim-up blackjack. Get there at open to claim a lounger before they fill up.'},
+  {id:'f18',name:'Venus Pool (adults-only)',cost:'Free for guests',sub:'On-site',walk:'attached',type:'free',desc:'Adults-only pool with an air-conditioned bar. More relaxed vibe than the main pool complex.'},
+  {id:'f3',name:'Bellagio Conservatory & Botanical Gardens',cost:'Free',sub:'Bellagio · 5 min walk',walk:'5min',type:'free',desc:'14,000 sq ft of seasonal floral installations. Open 24 hours. Go before 9am for best photos with almost no crowds.'},
+  {id:'f4',name:'Bellagio Fountain Show',cost:'Free',sub:'5 min walk · Best at night',walk:'5min',type:'free',desc:'Every 30 min from 3pm, every 15 min 8pm–midnight. 1,200 nozzles, water reaches 460 ft. Best experienced after dark from the lakeside railing.'},
+  {id:'f5',name:'Chihuly glass ceiling (Bellagio lobby)',cost:'Free',sub:'Bellagio · 5 min walk',walk:'5min',type:'free',desc:'Fiori di Como — 2,000-piece hand-blown glass sculpture covering the entire Bellagio lobby ceiling. Free to walk in and view at any hour.'},
+  {id:'f6',name:"World's largest chocolate fountain",cost:'Free to view',sub:'Bellagio Patisserie · 5 min walk',walk:'5min',type:'free',desc:'14-foot tall chocolate waterfall right next to the Conservatory. Free to view, pastries available to buy.'},
+  {id:'f7',name:'Flamingo Wildlife Habitat',cost:'Free',sub:'Flamingo Hotel · 5 min walk',walk:'5min',type:'free',desc:'15-acre free garden with Chilean flamingos, koi ponds, turtles, parrots, and waterfalls. Daily keeper talk at 10am.'},
+  {id:'f8',name:'Eiffel Tower exterior + Paris walk-through',cost:'Free',sub:'Paris Las Vegas · 5 min walk',walk:'5min',type:'free',desc:'Free to photograph outside. Hotel also has a replica Pont Alexandre III bridge inside — free walk-through.'},
+  {id:'f15',name:'Eiffel Tower Viewing Deck',cost:'$29/person',sub:'Paris Las Vegas · 5 min walk',walk:'5min',type:'free',desc:'Best panoramic Strip views in this stretch, spectacular at night overlooking the Bellagio fountains. Open noon–midnight.'},
+  {id:'f9',name:'LINQ Promenade stroll',cost:'Free',sub:'5 min walk',walk:'5min',type:'free',desc:'Open-air promenade with 3D murals, choreographed light show, and free live entertainment most nights.'},
+  {id:'f10',name:"Grand Canal Shoppes + St. Mark's Square",cost:'Free',sub:'Venetian Resort · 10 min walk',walk:'10min',type:'free',desc:"Quarter-mile Venice replica with indoor canal, painted sky ceiling, gondoliers singing, and free concerts in St. Mark's Square."},
+  {id:'f11',name:'Palazzo Waterfall Atrium + LOVE sculpture',cost:'Free',sub:'Venetian/Palazzo · 10 min walk',walk:'10min',type:'free',desc:'Colorful multi-story waterfall atrium and the giant LOVE lettering. Popular photo spots, free to walk through.'},
+  {id:'f16',name:'Madame Tussauds',cost:'~$30/person',sub:'Venetian · 10 min walk',walk:'10min',type:'free',desc:'Air-conditioned wax museum with Marvel 4D movie included. Great midday heat escape. Open daily 10am–8pm.'},
+  {id:'f12',name:"Gilley's Saloon line dancing",cost:'Free',sub:'Treasure Island · 10 min walk · Mon–Thu 7–8pm',walk:'10min',type:'free',desc:'Free line dancing lessons Mon–Thu 7–8pm. No cover charge, no drink minimum.'},
+  {id:'f13',name:'Wynn Botanical Gardens',cost:'Free',sub:'Wynn Las Vegas · 12–15 min walk',walk:'15min',type:'free',desc:'Free outdoor floral garden with large sculptural installations and a life-size carousel made from real flowers.'},
+  {id:'f14',name:'Lake of Dreams show',cost:'Free',sub:'Wynn · 12–15 min walk · Nightly from dusk',walk:'15min',type:'free',desc:'Free nightly show every 30 min from dusk — puppetry, light effects, 90-ft waterfall. Watch from Bar Parasol inside Wynn.'},
   // BUFFETS
   {id:'b1',name:'Bacchanal Buffet',cost:'$64.99–$84.99/person',sub:'Caesars Palace · On-site · Reserve in advance',walk:'near',desc:"Vegas's largest buffet — 250+ dishes across 9 live chef stations. Prime rib, crab legs, sushi, Mediterranean, Latin, Asian, and a full dessert hall.",table:`<table class="price-table"><tr><th>Session</th><th>Days</th><th>Hours</th><th>Price</th></tr><tr><td>Brunch</td><td>Thu–Mon</td><td>9am–1pm</td><td>$64.99</td></tr><tr><td>Crab brunch</td><td>Thu–Mon</td><td>1–3pm</td><td>$79.99</td></tr><tr><td>Dinner Sun–Thu</td><td>Sun–Thu</td><td>3–10pm</td><td>$79.99</td></tr><tr><td>Dinner Fri–Sat</td><td>Fri–Sat</td><td>3–10pm</td><td>$84.99</td></tr></table>`},
   {id:'b2',name:'Bellagio Buffet',cost:'$54.99–$74.99/person',sub:'Bellagio · 5 min walk · Closing Sept 1, 2026',walk:'near',desc:'Still a beautiful room — seafood, international options, classic carving station. A historical experience while it lasts.',table:`<table class="price-table"><tr><th>Session</th><th>Days</th><th>Hours</th><th>Price</th></tr><tr><td>Brunch</td><td>Mon–Fri</td><td>8am–3pm</td><td>$54.99</td></tr><tr><td>Brunch</td><td>Sat–Sun</td><td>8am–1pm</td><td>$54.99</td></tr><tr><td>Dinner</td><td>Sat–Sun only</td><td>1–8pm</td><td>$74.99</td></tr></table>`},
@@ -334,14 +355,14 @@ function daySelectHtml(itemId){
 }
 
 function makeCard(item,badgeHtml,extraBody){
-  return `<div class="card" data-walk="${item.walk||''}" data-meal="${item.meal||''}"><div class="card-header"><div style="flex:1;min-width:0;"><div class="card-title">${item.name}</div><div class="card-sub">${item.sub||''}</div></div><div class="card-actions">${badgeHtml||''}${daySelectHtml(item.id)}</div></div><div class="card-body">${item.desc||''}${extraBody||''}</div></div>`;
+  return `<div class="card" data-walk="${item.walk||''}" data-meal="${item.meal||''}" data-type="${item.type||''}"><div class="card-header"><div style="flex:1;min-width:0;"><div class="card-title">${item.name}</div><div class="card-sub">${item.sub||''}</div></div><div class="card-actions">${badgeHtml||''}${daySelectHtml(item.id)}</div></div><div class="card-body">${item.desc||''}${extraBody||''}</div></div>`;
 }
 
 function buildAll(){
   const wl={attached:'On-site','5min':'5 min','10min':'10 min','15min':'12–15 min'};
 
-  // Free
-  document.getElementById('free-list').innerHTML=ALL_ITEMS.filter(i=>i.walk).map(i=>makeCard(i,
+  // Free — only items explicitly tagged type:'free'
+  document.getElementById('free-list').innerHTML=ALL_ITEMS.filter(i=>i.type==='free').map(i=>makeCard(i,
     `<span class="badge ${i.cost==='Free'||i.cost.includes('guest')?'badge-free':'badge-cheap'}">${i.cost}</span><span class="badge badge-dist">${wl[i.walk]||i.walk}</span>`,'')).join('');
 
   // Buffets
@@ -389,6 +410,8 @@ function filterFree(type,btn){
   btn.classList.add('on');
   document.querySelectorAll('#free-list .card').forEach(c=>{
     const w=c.dataset.walk;
+    const t=c.dataset.type;
+    if(t!=='free'){c.style.display='none';return;}
     const show=type==='all'||(type==='attached'&&w==='attached')||(type==='5min'&&(w==='attached'||w==='5min'))||(type==='10min'&&(w==='attached'||w==='5min'||w==='10min'))||type==='15min';
     c.style.display=show?'':'none';
   });
