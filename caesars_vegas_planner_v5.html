@@ -1,0 +1,535 @@
+
+<h2 class="sr-only">Las Vegas Trip Planner for Caesars Palace, August 17-20 with custom itinerary builder</h2>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+.app{max-width:680px;padding:0 0 2rem;}
+.hero{width:100%;height:180px;display:block;}
+.tabs{display:flex;gap:6px;padding:0.75rem 1rem 0;flex-wrap:wrap;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);}
+.tab-btn{padding:6px 12px;font-size:12px;font-weight:500;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-secondary);cursor:pointer;transition:all 0.15s;}
+.tab-btn:hover{background:var(--color-background-secondary);}
+.tab-btn.active{background:#C9A84C;border-color:#C9A84C;color:#fff;}
+.section{display:none;padding:1.25rem 1rem;}
+.section.active{display:block;}
+
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:0.875rem 1.25rem;margin-bottom:8px;border-left:3px solid #C9A84C;}
+.card-header{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.card-title{font-size:14px;font-weight:500;color:var(--color-text-primary);}
+.card-sub{font-size:12px;color:var(--color-text-secondary);margin-top:2px;}
+.card-body{font-size:12px;color:var(--color-text-secondary);line-height:1.55;margin-top:6px;}
+.card-actions{display:flex;align-items:center;gap:6px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;}
+
+.badge{font-size:10px;font-weight:500;padding:2px 7px;border-radius:var(--border-radius-md);white-space:nowrap;}
+.badge-free{background:#e6f4ee;color:#1a6640;}
+.badge-cheap{background:#e6f0fa;color:#1a4a80;}
+.badge-mid{background:#fdf3e3;color:#7a4a10;}
+.badge-luxury{background:#fdf0e6;color:#7a3010;}
+.badge-dist{background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-tertiary);}
+.badge-closing{background:#fde8e8;color:#901a1a;}
+
+.cat-label{font-size:11px;color:#C9A84C;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;margin:1.25rem 0 0.5rem;padding-bottom:4px;border-bottom:1px solid #e8d8a0;}
+.cat-label:first-of-type{margin-top:0;}
+.filter-row{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap;align-items:center;}
+.filter-label{font-size:12px;color:var(--color-text-tertiary);font-weight:500;}
+.filter-btn{padding:4px 10px;font-size:12px;border:0.5px solid var(--color-border-tertiary);border-radius:20px;background:var(--color-background-secondary);color:var(--color-text-secondary);cursor:pointer;}
+.filter-btn.on{background:#C9A84C;border-color:#C9A84C;color:#fff;}
+.tip-box{background:#fffbf0;border-left:3px solid #C9A84C;border-radius:0 var(--border-radius-md) var(--border-radius-md) 0;padding:10px 14px;margin-bottom:10px;font-size:13px;color:var(--color-text-secondary);line-height:1.6;}
+.tip-box strong{color:#8a6010;font-weight:500;}
+.warn-box{background:#fff5f5;border-left:3px solid #e04040;border-radius:0 var(--border-radius-md) var(--border-radius-md) 0;padding:10px 14px;margin-bottom:10px;font-size:13px;color:#901a1a;line-height:1.6;}
+.warn-box strong{font-weight:500;}
+.price-table{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px;}
+.price-table th{text-align:left;color:var(--color-text-tertiary);font-weight:500;padding:3px 6px 3px 0;border-bottom:0.5px solid var(--color-border-tertiary);}
+.price-table td{padding:4px 6px 4px 0;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-tertiary);vertical-align:top;}
+.price-table td:first-child{color:var(--color-text-primary);font-weight:500;}
+.price-table tr:last-child td{border-bottom:none;}
+
+/* Add to plan widget */
+.add-widget{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.day-sel{font-size:11px;padding:4px 6px;border:1px solid #C9A84C;border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;max-width:130px;}
+.add-btn{font-size:11px;font-weight:500;padding:4px 10px;border:1px solid #C9A84C;border-radius:var(--border-radius-md);background:transparent;color:#C9A84C;cursor:pointer;white-space:nowrap;transition:all 0.15s;flex-shrink:0;}
+.add-btn:hover{background:#C9A84C;color:#fff;}
+.add-btn.added{background:#C9A84C;color:#fff;}
+
+/* Plan tab */
+.flight-banner{background:#1a3a5c;border-radius:var(--border-radius-md);padding:10px 14px;margin-bottom:1rem;display:flex;gap:16px;flex-wrap:wrap;}
+.flight-item{display:flex;align-items:center;gap:8px;}
+.flight-icon{font-size:18px;color:#7ab8e8;}
+.flight-text{font-size:12px;color:#c0d8f0;line-height:1.4;}
+.flight-text strong{color:#e8f4ff;font-size:13px;display:block;}
+.plan-instructions{font-size:12px;color:var(--color-text-secondary);margin-bottom:1rem;line-height:1.6;background:var(--color-background-secondary);padding:10px 14px;border-radius:var(--border-radius-md);}
+
+.day-cols{display:flex;flex-direction:column;gap:14px;}
+.day-block{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;}
+.day-head{background:#fdf8ee;padding:8px 1rem;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e8d8a0;}
+.day-head-left{display:flex;flex-direction:column;}
+.day-title{font-size:13px;font-weight:500;color:#6a4010;}
+.day-note{font-size:11px;color:#a07030;margin-top:2px;}
+.clear-day-btn{font-size:11px;color:var(--color-text-tertiary);background:none;border:none;cursor:pointer;padding:2px 6px;}
+.clear-day-btn:hover{color:#c03030;}
+
+.drop-zone{min-height:70px;padding:8px;position:relative;}
+.drop-zone.drag-over{background:#fffbf0;outline:2px dashed #C9A84C;outline-offset:-4px;border-radius:4px;}
+.drop-empty{font-size:12px;color:var(--color-text-tertiary);text-align:center;padding:16px 0;pointer-events:none;}
+
+.plan-item{background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-left:3px solid #C9A84C;border-radius:var(--border-radius-md);padding:7px 10px;margin-bottom:6px;display:flex;align-items:center;gap:8px;cursor:grab;user-select:none;transition:box-shadow 0.15s;}
+.plan-item:last-child{margin-bottom:0;}
+.plan-item.dragging{opacity:0.35;box-shadow:none;}
+.plan-item.drag-above{border-top:2px solid #C9A84C;}
+.plan-item.drag-below{border-bottom:2px solid #C9A84C;}
+.grip{color:var(--color-text-tertiary);cursor:grab;font-size:15px;flex-shrink:0;line-height:1;}
+.plan-item-num{font-size:11px;font-weight:600;color:#C9A84C;min-width:16px;flex-shrink:0;text-align:right;}
+.plan-item-body{flex:1;min-width:0;}
+.plan-item-name{font-size:13px;font-weight:500;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.plan-item-cost{font-size:11px;color:var(--color-text-secondary);margin-top:1px;}
+.remove-btn{font-size:18px;line-height:1;color:var(--color-text-tertiary);background:none;border:none;cursor:pointer;padding:0 2px;flex-shrink:0;}
+.remove-btn:hover{color:#c03030;}
+
+.plan-footer{text-align:center;padding:0.5rem 0 0;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+@media(max-width:480px){.two-col{grid-template-columns:1fr;}}
+</style>
+
+<svg class="hero" viewBox="0 0 680 180" xmlns="http://www.w3.org/2000/svg">
+  <rect width="680" height="180" fill="#1a0f04"/>
+  <g opacity="0.15" stroke="#C9A84C" stroke-width="0.5" fill="none">
+    <line x1="0" y1="30" x2="680" y2="30"/><line x1="0" y1="60" x2="680" y2="60"/>
+    <line x1="0" y1="90" x2="680" y2="90"/><line x1="0" y1="120" x2="680" y2="120"/>
+    <line x1="0" y1="150" x2="680" y2="150"/>
+  </g>
+  <g fill="#C9A84C" opacity="0.9">
+    <rect x="28" y="128" width="20" height="4"/><rect x="30" y="132" width="16" height="40"/><rect x="24" y="168" width="28" height="8"/><ellipse cx="38" cy="128" rx="12" ry="6"/>
+    <rect x="32" y="108" width="2" height="20"/><rect x="43" y="108" width="2" height="20"/>
+    <ellipse cx="33" cy="108" rx="3" ry="5"/><ellipse cx="44" cy="108" rx="3" ry="5"/>
+    <rect x="56" y="106" width="22" height="4"/><rect x="58" y="110" width="18" height="62"/><rect x="52" y="168" width="30" height="8"/><ellipse cx="67" cy="106" rx="14" ry="7"/>
+    <rect x="61" y="82" width="2" height="24"/><rect x="73" y="82" width="2" height="24"/>
+    <ellipse cx="62" cy="82" rx="3" ry="6"/><ellipse cx="74" cy="82" rx="3" ry="6"/>
+    <rect x="91" y="116" width="20" height="4"/><rect x="93" y="120" width="16" height="52"/><rect x="87" y="168" width="28" height="8"/><ellipse cx="101" cy="116" rx="12" ry="6"/>
+    <rect x="95" y="96" width="2" height="20"/><rect x="106" y="96" width="2" height="20"/>
+    <ellipse cx="96" cy="96" rx="3" ry="5"/><ellipse cx="107" cy="96" rx="3" ry="5"/>
+  </g>
+  <g fill="#C9A84C" opacity="0.9">
+    <rect x="632" y="128" width="20" height="4"/><rect x="634" y="132" width="16" height="40"/><rect x="628" y="168" width="28" height="8"/><ellipse cx="642" cy="128" rx="12" ry="6"/>
+    <rect x="636" y="108" width="2" height="20"/><rect x="647" y="108" width="2" height="20"/>
+    <ellipse cx="637" cy="108" rx="3" ry="5"/><ellipse cx="648" cy="108" rx="3" ry="5"/>
+    <rect x="602" y="106" width="22" height="4"/><rect x="604" y="110" width="18" height="62"/><rect x="598" y="168" width="30" height="8"/><ellipse cx="613" cy="106" rx="14" ry="7"/>
+    <rect x="607" y="82" width="2" height="24"/><rect x="619" y="82" width="2" height="24"/>
+    <ellipse cx="608" cy="82" rx="3" ry="6"/><ellipse cx="620" cy="82" rx="3" ry="6"/>
+    <rect x="569" y="116" width="20" height="4"/><rect x="571" y="120" width="16" height="52"/><rect x="565" y="168" width="28" height="8"/><ellipse cx="579" cy="116" rx="12" ry="6"/>
+    <rect x="573" y="96" width="2" height="20"/><rect x="584" y="96" width="2" height="20"/>
+    <ellipse cx="574" cy="96" rx="3" ry="5"/><ellipse cx="585" cy="96" rx="3" ry="5"/>
+  </g>
+  <g fill="#C9A84C" opacity="0.22">
+    <polygon points="270,18 280,40 304,40 285,54 292,76 270,62 248,76 255,54 236,40 260,40"/>
+    <polygon points="410,18 420,40 444,40 425,54 432,76 410,62 388,76 395,54 376,40 400,40"/>
+    <polygon points="340,8 347,26 366,26 352,36 358,54 340,44 322,54 328,36 314,26 333,26"/>
+  </g>
+  <text x="340" y="93" text-anchor="middle" font-family="Georgia,serif" font-size="28" font-weight="bold" fill="#F5D87A" letter-spacing="6">CAESARS PALACE</text>
+  <text x="340" y="118" text-anchor="middle" font-family="Georgia,serif" font-size="13" fill="#C9A84C" letter-spacing="3">LAS VEGAS · AUG 17–20</text>
+  <text x="340" y="138" text-anchor="middle" font-family="Georgia,serif" font-size="11" fill="#9a7040" letter-spacing="2" font-style="italic">Octavius Tower · Your Trip Guide</text>
+  <g fill="#C9A84C" opacity="0.4">
+    <rect x="195" y="153" width="290" height="1"/>
+    <polygon points="195,150 200,156 195,160"/><polygon points="485,150 480,156 485,160"/>
+  </g>
+</svg>
+
+<div class="app">
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('plan')" id="tab-plan">📋 My Plan</button>
+    <button class="tab-btn" onclick="showTab('free')" id="tab-free">⭐ Free things</button>
+    <button class="tab-btn" onclick="showTab('buffet')" id="tab-buffet">🍽 Buffets</button>
+    <button class="tab-btn" onclick="showTab('food')" id="tab-food">🍔 Food</button>
+    <button class="tab-btn" onclick="showTab('spa')" id="tab-spa">💆 Spas</button>
+    <button class="tab-btn" onclick="showTab('shop')" id="tab-shop">🛍 Shopping</button>
+    <button class="tab-btn" onclick="showTab('fremont')" id="tab-fremont">🚌 Fremont</button>
+  </div>
+
+  <!-- PLAN TAB -->
+  <div class="section active" id="plan">
+    <div class="flight-banner">
+      <div class="flight-item">
+        <span class="flight-icon">✈️</span>
+        <div class="flight-text"><strong>Arrive 2:35 PM · Mon Aug 17</strong>Land, get to Caesars — check-in from ~4pm</div>
+      </div>
+      <div class="flight-item">
+        <span class="flight-icon">✈️</span>
+        <div class="flight-text"><strong>Depart 4:40 PM · Thu Aug 20</strong>Leave for airport by ~2:30pm</div>
+      </div>
+    </div>
+    <div class="plan-instructions">
+      Browse the other tabs and use <strong style="color:#8a6010;">+ Add to plan</strong> — you'll pick which day right there. Once added, hold and drag the ☰ handle to reorder within a day, or drag the whole card to a different day's zone. Hit × to remove.
+    </div>
+    <div class="day-cols" id="day-cols"></div>
+    <div class="plan-footer">
+      <button onclick="clearAll()" style="font-size:12px;color:var(--color-text-tertiary);background:none;border:none;cursor:pointer;padding:4px 8px;">Clear entire plan</button>
+    </div>
+  </div>
+
+  <!-- FREE TAB -->
+  <div class="section" id="free">
+    <div class="filter-row">
+      <span class="filter-label">Filter:</span>
+      <button class="filter-btn on" onclick="filterFree('all',this)">All</button>
+      <button class="filter-btn" onclick="filterFree('attached',this)">At Caesars</button>
+      <button class="filter-btn" onclick="filterFree('5min',this)">5 min</button>
+      <button class="filter-btn" onclick="filterFree('10min',this)">10 min</button>
+      <button class="filter-btn" onclick="filterFree('15min',this)">15 min</button>
+    </div>
+    <div id="free-list"></div>
+  </div>
+
+  <!-- BUFFET TAB -->
+  <div class="section" id="buffet">
+    <div class="warn-box"><strong>Heads up:</strong> Wicked Spoon and Bellagio buffet close by Q2 2027 — open for your August trip, confirm before you go.</div>
+    <div class="tip-box"><strong>Money hack:</strong> Arrive 30 min before brunch-to-dinner transition — pay brunch price, get dinner dishes rolling out. Book Bacchanal and Wynn in advance.</div>
+    <p class="cat-label">Walking distance — on-site to 15 min</p>
+    <div id="buffet-near"></div>
+    <p class="cat-label">Too far to walk — rideshare (~25 min)</p>
+    <div id="buffet-far"></div>
+  </div>
+
+  <!-- FOOD TAB -->
+  <div class="section" id="food">
+    <div class="tip-box"><strong>August tip:</strong> Eat your big meal at lunch — many Strip restaurants run cheaper midday menus.</div>
+    <p class="cat-label">Under $15/person</p>
+    <div id="food-cheap"></div>
+    <p class="cat-label">Under $30/person</p>
+    <div id="food-mid"></div>
+  </div>
+
+  <!-- SPA TAB -->
+  <div class="section" id="spa">
+    <div class="tip-box"><strong>Tip:</strong> Weekday appointments run 20–30% cheaper at most spas.</div>
+    <p class="cat-label">Budget-friendly</p>
+    <div id="spa-cheap"></div>
+    <p class="cat-label">Mid-range splurge</p>
+    <div id="spa-mid"></div>
+  </div>
+
+  <!-- SHOP TAB -->
+  <div class="section" id="shop">
+    <div class="tip-box"><strong>Tip:</strong> All air-conditioned — perfect for the 11am–4pm heat window.</div>
+    <div id="shop-list"></div>
+  </div>
+
+  <!-- FREMONT TAB -->
+  <div class="section" id="fremont">
+    <div class="tip-box"><strong>Getting there:</strong> Lyft or taxi $20–25 each way, ~15 min. Best after dark when temps drop.</div>
+    <p class="cat-label">Activities</p>
+    <div id="fremont-acts"></div>
+    <p class="cat-label">Budget food down there</p>
+    <div id="fremont-food"></div>
+  </div>
+</div>
+
+<script>
+// ─── DATA ────────────────────────────────────────────
+const DAYS = [
+  {id:'d0', label:'Monday Aug 17',   note:'Arrive 2:35 PM · Evening only'},
+  {id:'d1', label:'Tuesday Aug 18',  note:'Full day'},
+  {id:'d2', label:'Wednesday Aug 19',note:'Full day'},
+  {id:'d3', label:'Thursday Aug 20', note:'Must leave for airport by 2:30 PM'},
+];
+
+const ALL_ITEMS = [
+  // free/activities
+  {id:'f1', name:'Forum Shops + Fall of Atlantis show', cost:'Free', sub:'On-site', walk:'attached', desc:'Roman-themed mall attached to hotel. Animatronic show hourly noon–8pm (Thu–Mon).'},
+  {id:'f2', name:'Fountain of the Gods & Trevi Fountain', cost:'Free', sub:'On-site', walk:'attached', desc:'Roman fountain replicas inside Caesars — excellent photo stops.'},
+  {id:'f17',name:'Garden of the Gods Pool', cost:'Free for guests', sub:'On-site', walk:'attached', desc:'Seven pools, 48 cabanas, swim-up blackjack. Arrive at open to claim a lounger.'},
+  {id:'f18',name:'Venus Pool (adults-only)', cost:'Free for guests', sub:'On-site', walk:'attached', desc:'Adults-only pool with air-conditioned bar. More relaxed than the main complex.'},
+  {id:'f3', name:'Bellagio Conservatory & Botanical Gardens', cost:'Free', sub:'Bellagio · 5 min walk', walk:'5min', desc:'14,000 sq ft seasonal floral display. Open 24 hrs. Go before 9am for best photos.'},
+  {id:'f4', name:'Bellagio Fountain Show', cost:'Free', sub:'5 min walk · Best at night', walk:'5min', desc:'Every 30 min from 3pm, every 15 min 8pm–midnight. 1,200 nozzles, water up to 460 ft.'},
+  {id:'f5', name:'Chihuly glass ceiling', cost:'Free', sub:'Bellagio lobby · 5 min', walk:'5min', desc:'2,000-piece hand-blown glass sculpture covering the entire Bellagio lobby ceiling.'},
+  {id:'f6', name:'World\'s largest chocolate fountain', cost:'Free to view', sub:'Bellagio Patisserie · 5 min', walk:'5min', desc:'14-foot tall chocolate waterfall next to the Conservatory.'},
+  {id:'f7', name:'Flamingo Wildlife Habitat', cost:'Free', sub:'5 min walk', walk:'5min', desc:'15-acre free garden — flamingos, koi ponds, turtles, parrots, waterfalls. Keeper talk 10am.'},
+  {id:'f8', name:'Eiffel Tower exterior & Paris walk-through', cost:'Free', sub:'Paris Las Vegas · 5 min', walk:'5min', desc:'Free to photograph outside. Replica Pont Alexandre III bridge inside — free walk-through.'},
+  {id:'f9', name:'LINQ Promenade stroll', cost:'Free', sub:'5 min walk', walk:'5min', desc:'3D murals, choreographed light show, free live entertainment most nights.'},
+  {id:'f15',name:'Eiffel Tower Viewing Deck', cost:'$29/person', sub:'Paris Las Vegas · 5 min', walk:'5min', desc:'Best Strip views, spectacular at night overlooking the Bellagio fountains. Open noon–midnight.'},
+  {id:'f10',name:'Grand Canal Shoppes + St. Mark\'s Square', cost:'Free', sub:'Venetian · 10 min', walk:'10min', desc:'Quarter-mile Venice replica, indoor canal, gondoliers singing, free concerts.'},
+  {id:'f11',name:'Palazzo Waterfall Atrium + LOVE sculpture', cost:'Free', sub:'10 min walk', walk:'10min', desc:'Colorful waterfall atrium and giant LOVE lettering. Popular photo spots.'},
+  {id:'f12',name:'Gilley\'s Saloon line dancing', cost:'Free', sub:'Treasure Island · 10 min · Mon–Thu 7–8pm', walk:'10min', desc:'Free line dancing lessons Mon–Thu 7–8pm. No cover, no drink minimum.'},
+  {id:'f16',name:'Madame Tussauds', cost:'~$30/person', sub:'Venetian · 10 min', walk:'10min', desc:'Air-conditioned wax museum with Marvel 4D movie. Great midday heat escape. Open 10am–8pm.'},
+  {id:'f13',name:'Wynn Botanical Gardens', cost:'Free', sub:'Wynn · 12–15 min', walk:'15min', desc:'Free outdoor floral garden with large sculptural installations and a real-flower carousel.'},
+  {id:'f14',name:'Lake of Dreams show', cost:'Free', sub:'Wynn · 12–15 min · Nightly from dusk', walk:'15min', desc:'Free nightly every 30 min from dusk. 90-ft waterfall, puppetry, lights. Watch from Bar Parasol.'},
+  // buffets
+  {id:'b1', name:'Bacchanal Buffet', cost:'$64.99–$84.99/person', sub:'On-site', walk:'near', desc:'Vegas\'s largest — 250+ dishes, 9 live stations, prime rib, crab legs, sushi, full dessert hall.'},
+  {id:'b2', name:'Bellagio Buffet', cost:'$54.99–$74.99/person', sub:'5 min walk · Closing Sept 1 2026', walk:'near', desc:'Beautiful room, seafood, carving station. A historical experience while it lasts.'},
+  {id:'b3', name:'Wicked Spoon', cost:'$47–55/person', sub:'Cosmopolitan · 10 min · Brunch only, closes 2pm', walk:'near', desc:'Individual small-plate portions. Snow crab, bone marrow, excellent desserts.'},
+  {id:'b4', name:'Wynn Buffet', cost:'$59.99–$79.99/person', sub:'Wynn · 12–15 min', walk:'near', desc:'Most beautiful buffet room in Vegas. 120+ dishes, 16 stations, made-to-order sushi. Bottomless drinks +$30.99.'},
+  {id:'b5', name:'Excalibur Buffet', cost:'$32.99–$43.99/person', sub:'~25 min by rideshare · Brunch only', walk:'far', desc:'Best budget buffet on the Strip. 6 stations, omelet and crepe bars. Friday = seafood night.'},
+  {id:'b6', name:'Circus Circus Buffet', cost:'$29.95–$34.95/person', sub:'~25 min by rideshare · Weekends only', walk:'far', desc:'Cheapest option on the Strip. Weekends only. Pair with free acrobat shows inside.'},
+  // food
+  {id:'fd1',name:'In-N-Out Burger', cost:'Under $10', sub:'LINQ · 5 min', tier:'cheap', desc:'Combo under $10. Shakes $3.20. Open until 1:30am weekends. Best value on the Strip.'},
+  {id:'fd2',name:'Secret Pizza', cost:'~$15–20/person', sub:'Cosmopolitan 3rd floor · 10 min · Open until 4am', tier:'cheap', desc:'Hidden spot — no sign, follow the record-lined hallway on floor 3. NY-style thin crust.'},
+  {id:'fd3',name:'Hash House A Go Go', cost:'~$20–25/person', sub:'LINQ · 5 min · Open 7:30am–3pm', tier:'cheap', desc:'Monster portions — one entrée easily shared between two. Best chicken & waffles on the Strip.'},
+  {id:'fd4',name:'Cafe Americano', cost:'~$20–25/person', sub:'On-site · Open 24 hours', tier:'mid', desc:'Reliable for any meal, any hour. Solid on-site option.'},
+  {id:'fd5',name:'Eggslut', cost:'~$20–25/person', sub:'Cosmopolitan 2nd floor · 10 min · 7am–2pm', tier:'mid', desc:'Trendy egg sandwiches and truffle tots. 15–20 min wait typical.'},
+  {id:'fd6',name:'Forum Food Court', cost:'$15+/person', sub:'On-site', tier:'mid', desc:'Chicken Guy!, Bobby\'s Burgers, and more. Convenient — most meals $15+.'},
+  {id:'fd7',name:'Carmine\'s Italian', cost:'~$25–40/person', sub:'Forum Shops · On-site · Family-style', tier:'mid', desc:'Massive family-style portions — one entrée easily feeds two people.'},
+  {id:'fd8',name:'Cheesecake Factory', cost:'~$20–30/person', sub:'Forum Shops · On-site', tier:'mid', desc:'Split an entrée — portions are enormous and it saves money.'},
+  {id:'fd9',name:'Margaritaville', cost:'~$20–30/person', sub:'5 min walk', tier:'mid', desc:'Casual themed setting at accessible Strip prices.'},
+  // spas
+  {id:'sp1',name:'Spa at the LINQ', cost:'From ~$100', sub:'5 min walk', tier:'cheap', desc:'Himalayan salt cave, steam room, whirlpool, hot tub. Intimate scale. Massages and facials available.'},
+  {id:'sp2',name:'BATHHOUSE Spa (W Las Vegas)', cost:'$50 Mon–Thu / $100 Fri–Sun', sub:'Rideshare needed', tier:'cheap', desc:'Day pass includes hot tubs, steam rooms, saunas. Best weekday spa value anywhere near the Strip.'},
+  {id:'sp3',name:'Spa at Serene Hotel', cost:'Under $100/hr massage', sub:'Strip · Rideshare recommended', tier:'cheap', desc:'Opened 2024. Praised for full-body massages under $100. More affordable than resort spas.'},
+  {id:'sp4',name:'Qua Baths & Spa', cost:'From ~$180', sub:'On-site · Roman-themed', tier:'mid', desc:'Multiple pools, Arctic ice room, laconicum. The ultimate on-site Roman-themed splurge.'},
+  {id:'sp5',name:'Canyon Ranch Spa', cost:'From ~$150', sub:'Venetian · 10 min', tier:'mid', desc:'134,000 sq ft at the Venetian. One of the largest spa operations on the Strip.'},
+  // shopping
+  {id:'sh1',name:'Forum Shops at Caesars', cost:'Free to browse', sub:'On-site · Luxury', desc:'160+ stores — Versace, LV, Gucci, Jimmy Choo. Cheesecake Factory and Carmine\'s inside.'},
+  {id:'sh2',name:'Grand Canal Shoppes', cost:'Free to browse', sub:'Venetian · 10 min · Luxury', desc:'Venice-themed mall, 160+ stores. Free entertainment in St. Mark\'s Square while you browse.'},
+  {id:'sh3',name:'LINQ Promenade', cost:'Free to browse', sub:'5 min · Mid-range', desc:'Open-air promenade with accessible shops and dining. Great evening stroll.'},
+  {id:'sh4',name:'Fashion Show Mall', cost:'Free to browse', sub:'12 min · Macy\'s, Nordstrom, Dillard\'s', desc:'Best non-luxury shopping in walking distance. Air-conditioned, food court.'},
+  {id:'sh5',name:'Miracle Mile Shops', cost:'Free to browse', sub:'Planet Hollywood · 12 min', desc:'200+ stores at mid-range prices. Indoor rain show. Good variety.'},
+  // fremont
+  {id:'fr1',name:'Fremont St. Viva Vision light show', cost:'Free', sub:'Downtown · Nightly after dark', desc:'World\'s largest LED canopy — $32M upgrade, 16.4M pixels. Shows hourly. Three live music stages.'},
+  {id:'fr2',name:'SlotZilla Zipline', cost:'$30–$45', sub:'Fremont · Book in advance', desc:'Seated from 7 stories or superman-style from 11 stories along the 5-block canopy.'},
+  {id:'fr3',name:'Neon Museum night tour', cost:'~$25/person', sub:'Fremont · Book ahead — sells out', desc:'Graveyard of vintage Las Vegas signage. Signs light up beautifully after dark.'},
+  {id:'fr4',name:'Mob Museum', cost:'~$32/person', sub:'Fremont · Opens 9am · Allow 2–3 hrs', desc:'Excellent air-conditioned organized crime museum. Hands-on forensic exhibits.'},
+  {id:'fr5',name:'Golden Nugget casino hopping', cost:'Free to enter', sub:'Fremont', desc:'Anchor of Fremont — shark tank visible from inside. Much cheaper table minimums than the Strip.'},
+  {id:'fr6',name:'Tony Roma\'s dinner', cost:'~$16/person', sub:'Fremont', desc:'Prime rib dinner around $16. Fremont prices noticeably cheaper than the Strip.'},
+  {id:'fr7',name:'Pop Up Pizza', cost:'$5–6/slice', sub:'Fremont', desc:'Solid downtown slice. Quick and cheap.'},
+];
+
+// ─── STATE ───────────────────────────────────────────
+const plan = {d0:[],d1:[],d2:[],d3:[]};
+let draggingItem = null;   // {dayId, idx}
+let dragOverInfo = null;
+
+// ─── PLAN RENDER ─────────────────────────────────────
+function renderPlan() {
+  const col = document.getElementById('day-cols');
+  col.innerHTML = '';
+  DAYS.forEach(day => {
+    const items = plan[day.id];
+    const zoneId = 'zone-'+day.id;
+    const div = document.createElement('div');
+    div.className = 'day-block';
+    div.innerHTML = `
+      <div class="day-head">
+        <div class="day-head-left">
+          <div class="day-title">📅 ${day.label}</div>
+          <div class="day-note">${day.note}</div>
+        </div>
+        <button class="clear-day-btn" onclick="clearDay('${day.id}')">Clear</button>
+      </div>
+      <div class="drop-zone" id="${zoneId}"
+        ondragover="zoneDragOver(event,'${day.id}')"
+        ondragleave="zoneDragLeave('${day.id}')"
+        ondrop="zoneDrop(event,'${day.id}')">
+        ${items.length===0 ? '<div class="drop-empty">Add activities from the other tabs — or drag cards here</div>' : ''}
+        ${items.map((item,i) => `
+          <div class="plan-item" id="pi-${day.id}-${i}"
+            draggable="true"
+            ondragstart="itemDragStart(event,'${day.id}',${i})"
+            ondragend="itemDragEnd()"
+            ondragover="itemDragOver(event,'${day.id}',${i})"
+            ondrop="itemDrop(event,'${day.id}',${i})">
+            <span class="grip" title="Drag to reorder">☰</span>
+            <span class="plan-item-num">${i+1}</span>
+            <div class="plan-item-body">
+              <div class="plan-item-name">${item.name}</div>
+              <div class="plan-item-cost">${item.cost}</div>
+            </div>
+            <button class="remove-btn" onclick="removeItem('${day.id}',${i})" title="Remove">×</button>
+          </div>
+        `).join('')}
+      </div>`;
+    col.appendChild(div);
+  });
+}
+
+function removeItem(dayId, idx) {
+  plan[dayId].splice(idx,1);
+  renderPlan(); refreshAddBtns();
+}
+function clearDay(dayId) {
+  plan[dayId]=[];
+  renderPlan(); refreshAddBtns();
+}
+function clearAll() {
+  Object.keys(plan).forEach(k=>plan[k]=[]);
+  renderPlan(); refreshAddBtns();
+}
+
+// ─── DRAG WITHIN / BETWEEN DAYS ──────────────────────
+function itemDragStart(e, dayId, idx) {
+  draggingItem = {dayId, idx};
+  e.dataTransfer.effectAllowed='move';
+  setTimeout(()=>{
+    const el=document.getElementById(`pi-${dayId}-${idx}`);
+    if(el) el.classList.add('dragging');
+  },0);
+}
+function itemDragEnd() {
+  document.querySelectorAll('.plan-item').forEach(el=>{
+    el.classList.remove('dragging','drag-above','drag-below');
+  });
+  document.querySelectorAll('.drop-zone').forEach(el=>el.classList.remove('drag-over'));
+  draggingItem=null; dragOverInfo=null;
+}
+function itemDragOver(e, dayId, idx) {
+  e.preventDefault(); e.stopPropagation();
+  if(!draggingItem) return;
+  document.querySelectorAll('.plan-item').forEach(el=>el.classList.remove('drag-above','drag-below'));
+  const el=document.getElementById(`pi-${dayId}-${idx}`);
+  if(el) el.classList.add('drag-above');
+  dragOverInfo={dayId, idx};
+}
+function itemDrop(e, dayId, idx) {
+  e.preventDefault(); e.stopPropagation();
+  if(!draggingItem) return;
+  const {dayId:srcDay, idx:srcIdx}=draggingItem;
+  const item=plan[srcDay].splice(srcIdx,1)[0];
+  const targetIdx=(srcDay===dayId&&srcIdx<idx)?idx-1:idx;
+  plan[dayId].splice(targetIdx,0,item);
+  draggingItem=null; dragOverInfo=null;
+  renderPlan(); refreshAddBtns();
+}
+function zoneDragOver(e, dayId) {
+  e.preventDefault();
+  document.getElementById('zone-'+dayId).classList.add('drag-over');
+}
+function zoneDragLeave(dayId) {
+  document.getElementById('zone-'+dayId).classList.remove('drag-over');
+}
+function zoneDrop(e, dayId) {
+  e.preventDefault();
+  document.getElementById('zone-'+dayId).classList.remove('drag-over');
+  if(!draggingItem) return;
+  const {dayId:srcDay, idx:srcIdx}=draggingItem;
+  if(srcDay===dayId) return;
+  const item=plan[srcDay].splice(srcIdx,1)[0];
+  if(!plan[dayId].find(x=>x.id===item.id)) plan[dayId].push(item);
+  else plan[srcDay].splice(srcIdx,0,item);
+  draggingItem=null;
+  renderPlan(); refreshAddBtns();
+}
+
+// ─── ADD TO PLAN ─────────────────────────────────────
+function addToPlan(itemId, selId) {
+  const sel=document.getElementById(selId);
+  const dayId=sel?sel.value:'d0';
+  const item=ALL_ITEMS.find(x=>x.id===itemId);
+  if(!item) return;
+  if(!plan[dayId].find(x=>x.id===itemId)) {
+    plan[dayId].push(item);
+    renderPlan(); refreshAddBtns();
+  }
+}
+
+function isAdded(itemId) {
+  return Object.values(plan).flat().some(x=>x.id===itemId);
+}
+function refreshAddBtns() {
+  document.querySelectorAll('.add-btn').forEach(btn=>{
+    const id=btn.dataset.id;
+    if(isAdded(id)){btn.textContent='Added ✓';btn.classList.add('added');}
+    else{btn.textContent='+ Add';btn.classList.remove('added');}
+  });
+}
+
+// ─── DAY SELECT WIDGET ───────────────────────────────
+function daySelectHtml(itemId) {
+  const opts=DAYS.map(d=>`<option value="${d.id}">${d.label.replace(' Aug',' ')}</option>`).join('');
+  const selId=`sel-${itemId}`;
+  const added=isAdded(itemId);
+  return `<div class="add-widget">
+    <select class="day-sel" id="${selId}">
+      ${opts}
+    </select>
+    <button class="add-btn ${added?'added':''}" data-id="${itemId}" onclick="addToPlan('${itemId}','${selId}')">
+      ${added?'Added ✓':'+ Add'}
+    </button>
+  </div>`;
+}
+
+// ─── CARD BUILDERS ───────────────────────────────────
+function makeCard(item, badgesHtml, extraBody) {
+  return `<div class="card" data-walk="${item.walk||''}">
+    <div class="card-header">
+      <div style="flex:1;min-width:0;">
+        <div class="card-title">${item.name}</div>
+        <div class="card-sub">${item.sub||''}</div>
+      </div>
+      <div class="card-actions">
+        ${badgesHtml||''}
+        ${daySelectHtml(item.id)}
+      </div>
+    </div>
+    <div class="card-body">${item.desc||''}${extraBody||''}</div>
+  </div>`;
+}
+
+const buffetTables={
+  b1:`<table class="price-table"><tr><th>Session</th><th>Days</th><th>Hours</th><th>Price</th></tr><tr><td>Brunch</td><td>Thu–Mon</td><td>9am–1pm</td><td>$64.99</td></tr><tr><td>Crab brunch</td><td>Thu–Mon</td><td>1–3pm</td><td>$79.99</td></tr><tr><td>Dinner Sun–Thu</td><td>Sun–Thu</td><td>3–10pm</td><td>$79.99</td></tr><tr><td>Dinner Fri–Sat</td><td>Fri–Sat</td><td>3–10pm</td><td>$84.99</td></tr></table>`,
+  b2:`<table class="price-table"><tr><th>Session</th><th>Days</th><th>Hours</th><th>Price</th></tr><tr><td>Brunch</td><td>Mon–Fri</td><td>8am–3pm</td><td>$54.99</td></tr><tr><td>Brunch</td><td>Sat–Sun</td><td>8am–1pm</td><td>$54.99</td></tr><tr><td>Dinner</td><td>Sat–Sun</td><td>1–8pm</td><td>$74.99</td></tr></table>`,
+  b3:`<table class="price-table"><tr><th>Session</th><th>Days</th><th>Hours</th><th>Price</th></tr><tr><td>Brunch</td><td>Daily</td><td>8am–2pm</td><td>$47–55</td></tr></table>`,
+  b4:`<table class="price-table"><tr><th>Session</th><th>Days</th><th>Hours</th><th>Price</th></tr><tr><td>Gourmet brunch</td><td>Daily</td><td>8am–1pm</td><td>$59.99</td></tr><tr><td>Seafood dinner</td><td>Daily</td><td>1–9pm</td><td>$79.99</td></tr><tr><td>Bottomless drinks</td><td>Daily</td><td>—</td><td>+$30.99</td></tr></table>`,
+  b5:`<table class="price-table"><tr><th>Session</th><th>Days</th><th>Hours</th><th>Price</th></tr><tr><td>Brunch</td><td>Mon–Thu</td><td>7am–2pm</td><td>$32.99</td></tr><tr><td>Brunch</td><td>Fri</td><td>7am–2pm</td><td>$38.99</td></tr><tr><td>Brunch+mimosas</td><td>Sat–Sun</td><td>7am–2pm</td><td>$43.99</td></tr></table>`,
+  b6:`<table class="price-table"><tr><th>Session</th><th>Days</th><th>Hours</th><th>Price</th></tr><tr><td>Brunch</td><td>Sat, Sun</td><td>Sat 7am–2pm / Sun 8am–noon</td><td>$29.95</td></tr><tr><td>Dinner</td><td>Fri, Sat</td><td>Fri 5–9pm / Sat 4:30–10pm</td><td>$34.95</td></tr></table>`,
+};
+
+function buildAll() {
+  // free
+  const walkLabel={attached:'On-site','5min':'5 min','10min':'10 min','15min':'12–15 min'};
+  document.getElementById('free-list').innerHTML = ALL_ITEMS.filter(i=>i.walk)
+    .map(item=>{
+      const costCls=item.cost==='Free'||item.cost.includes('guest')?'badge-free':'badge-cheap';
+      return makeCard(item,
+        `<span class="badge ${costCls}">${item.cost}</span><span class="badge badge-dist">${walkLabel[item.walk]||item.walk}</span>`,'');
+    }).join('');
+
+  // buffets
+  const bNear=ALL_ITEMS.filter(i=>i.walk==='near');
+  const bFar=ALL_ITEMS.filter(i=>i.walk==='far');
+  document.getElementById('buffet-near').innerHTML=bNear.map(item=>{
+    const tier=['b1','b4'].includes(item.id)?'badge-luxury':['b5','b6'].includes(item.id)?'badge-cheap':'badge-mid';
+    const closing=['b2','b3'].includes(item.id)?'<span class="badge badge-closing">Closing soon</span>':'';
+    return makeCard(item,`<span class="badge ${tier}">${item.cost}</span>${closing}`,buffetTables[item.id]||'');
+  }).join('');
+  document.getElementById('buffet-far').innerHTML=bFar.map(item=>{
+    return makeCard(item,`<span class="badge badge-cheap">${item.cost}</span>`,buffetTables[item.id]||'');
+  }).join('');
+
+  // food
+  document.getElementById('food-cheap').innerHTML=ALL_ITEMS.filter(i=>i.tier==='cheap')
+    .map(i=>makeCard(i,`<span class="badge badge-cheap">${i.cost}</span>`,'')).join('');
+  document.getElementById('food-mid').innerHTML=ALL_ITEMS.filter(i=>i.tier==='mid')
+    .map(i=>makeCard(i,`<span class="badge badge-mid">${i.cost}</span>`,'')).join('');
+
+  // spas
+  document.getElementById('spa-cheap').innerHTML=ALL_ITEMS.filter(i=>i.id.startsWith('sp')&&i.tier==='cheap')
+    .map(i=>makeCard(i,`<span class="badge badge-cheap">${i.cost}</span>`,'')).join('');
+  document.getElementById('spa-mid').innerHTML=ALL_ITEMS.filter(i=>i.id.startsWith('sp')&&i.tier==='mid')
+    .map(i=>makeCard(i,`<span class="badge badge-mid">${i.cost}</span>`,'')).join('');
+
+  // shop
+  document.getElementById('shop-list').innerHTML=ALL_ITEMS.filter(i=>i.id.startsWith('sh'))
+    .map(i=>makeCard(i,`<span class="badge badge-dist">${i.sub.includes('On-site')?'On-site':i.sub.includes('10 min')?'10 min':'12 min'}</span>`,'')).join('');
+
+  // fremont
+  document.getElementById('fremont-acts').innerHTML=ALL_ITEMS.filter(i=>i.id.startsWith('fr')&&!['fr6','fr7'].includes(i.id))
+    .map(i=>makeCard(i,`<span class="badge ${i.cost==='Free'||i.cost.includes('Free')?'badge-free':'badge-cheap'}">${i.cost}</span>`,'')).join('');
+  document.getElementById('fremont-food').innerHTML=ALL_ITEMS.filter(i=>['fr6','fr7'].includes(i.id))
+    .map(i=>makeCard(i,`<span class="badge badge-cheap">${i.cost}</span>`,'')).join('');
+}
+
+function showTab(id) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById('tab-'+id).classList.add('active');
+  refreshAddBtns();
+}
+
+function filterFree(type, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('#free-list .card').forEach(c=>{
+    const w=c.dataset.walk;
+    const show=type==='all'||(type==='attached'&&w==='attached')||(type==='5min'&&(w==='attached'||w==='5min'))||(type==='10min'&&(w==='attached'||w==='5min'||w==='10min'))||type==='15min';
+    c.style.display=show?'':'none';
+  });
+}
+
+buildAll();
+renderPlan();
+</script>
