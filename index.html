@@ -4,92 +4,186 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <title>Caesars Palace · Las Vegas Trip Planner · Aug 17–20</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Lato:wght@300;400;500&display=swap" rel="stylesheet"/>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Lato:wght@300;400;500&display=swap');
 :root {
-  --gold:#C9A84C;--gold-light:#F5D87A;--gold-dark:#8a6010;--gold-pale:#fffbf0;--gold-border:#e8d8a0;
-  --bg:#ffffff;--bg2:#f8f6f2;--text:#1a1208;--text2:#6b5a3a;--text3:#a09070;--border:#e8e0d0;
-  --danger:#c03030;--danger-bg:#fff5f5;--danger-border:#e04040;
-  --info-bg:#e6f0fa;--info-text:#1a4a80;--success-bg:#e6f4ee;--success-text:#1a6640;
+  /* Forum Shops palette: indigo sky, warm stone, amber glow */
+  --gold:#D4A847;--gold-light:#f0cc70;--gold-dark:#8a6010;--gold-pale:#1e1630;--gold-border:#3a2d5a;
+  --bg:#16112a;--bg2:#1e1835;--text:#e8e0f8;--text2:#b8a8d8;--text3:#7a6a9a;--border:#2e2550;
+  --accent:#8b6cc8;--accent-light:#b090e8;--accent-pale:#2a1f4a;
+  --stone:#c8b898;--stone-light:#e8d8b8;--stone-dark:#8a7a5a;
+  --danger:#e06060;--danger-bg:#2a1020;--danger-border:#c04040;
+  --info-bg:#1a1f3a;--info-text:#90b8e8;--success-bg:#0f2a1a;--success-text:#70c890;
   --card-radius:10px;--tab-radius:8px;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
-body{font-family:'Lato',sans-serif;background:var(--bg2);color:var(--text);min-height:100vh;overflow-x:hidden;}
-.app{max-width:760px;width:100%;margin:0 auto;background:var(--bg);min-height:100vh;box-shadow:0 0 40px rgba(0,0,0,0.1);overflow-x:hidden;}
-.hero{width:100%;height:200px;display:block;background:#1a0f04;position:relative;overflow:hidden;}
+html{-webkit-text-size-adjust:100%;}
+body{font-family:'Lato',sans-serif;background:#0d0a1a;color:var(--text);min-height:100vh;overflow-x:hidden;}
+.app{max-width:760px;width:100%;margin:0 auto;background:var(--bg);min-height:100vh;box-shadow:0 0 60px rgba(100,70,200,0.25);overflow-x:hidden;}
+
+/* HERO */
+.hero{width:100%;height:200px;background:#1a0f04;position:relative;overflow:hidden;}
 .hero svg{width:100%;height:100%;}
-.tabs{display:flex;gap:6px;padding:0.85rem 1.25rem 0;flex-wrap:wrap;background:var(--bg);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
-.tab-btn{padding:7px 14px;font-family:'Lato',sans-serif;font-size:12px;font-weight:500;letter-spacing:0.03em;border:1px solid var(--border);border-radius:var(--tab-radius);background:var(--bg);color:var(--text2);cursor:pointer;transition:all 0.15s;white-space:nowrap;}
-.tab-btn:hover{background:var(--bg2);}
-.tab-btn.active{background:var(--gold);border-color:var(--gold);color:#fff;}
+
+/* SYNC BAR */
+.sync-bar{background:#0d0a1a;border-bottom:1px solid var(--border);padding:8px 1.25rem;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.sync-label{font-size:11px;color:var(--accent-light);flex-shrink:0;font-family:'Cinzel',serif;letter-spacing:0.05em;}
+.sync-input{flex:1;min-width:120px;max-width:200px;font-size:11px;padding:5px 9px;border-radius:5px;border:1px solid var(--border);background:#0a0818;color:var(--text);font-family:'Lato',sans-serif;}
+.sync-input::placeholder{color:var(--text3);}
+.sync-btn{font-size:11px;font-weight:500;padding:5px 11px;border-radius:5px;border:none;cursor:pointer;font-family:'Cinzel',serif;letter-spacing:0.04em;transition:all 0.15s;white-space:nowrap;}
+.sync-btn-connect{background:var(--accent);color:#fff;}
+.sync-btn-connect:hover{background:var(--accent-light);}
+.sync-btn-clear{background:transparent;border:1px solid var(--border);color:var(--text3);}
+.sync-btn-clear:hover{color:var(--danger);border-color:var(--danger);}
+.sync-status{font-size:10px;color:var(--success-text);margin-left:auto;white-space:nowrap;}
+.sync-status.err{color:var(--danger);}
+.sync-status.loading{color:var(--text3);}
+
+/* TABS */
+.tabs{display:flex;gap:5px;padding:0.85rem 1.25rem 0;flex-wrap:wrap;background:var(--bg);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
+.tab-btn{padding:7px 13px;font-family:'Cinzel',serif;font-size:11px;font-weight:400;letter-spacing:0.04em;border:1px solid var(--border);border-radius:var(--tab-radius);background:var(--bg);color:var(--text3);cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+.tab-btn:hover{background:var(--accent-pale);color:var(--accent-light);}
+.tab-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
 .section{display:none;padding:1.5rem 1.25rem;}
 .section.active{display:block;}
-.card{background:var(--bg);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:var(--card-radius);padding:1rem 1.25rem;margin-bottom:8px;}
+
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:var(--card-radius);padding:1rem 1.25rem;margin-bottom:8px;}
+.card.custom-card{border-left-color:var(--accent-light);}
 .card-header{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
-.card-title{font-size:14px;font-weight:500;color:var(--text);}
+.card-title{font-size:14px;font-weight:500;color:var(--stone-light);font-family:'Cinzel',serif;letter-spacing:0.03em;}
 .card-sub{font-size:12px;color:var(--text3);margin-top:2px;}
+.card-phone{font-size:11px;color:var(--accent-light);margin-top:3px;}
+.card-phone a{color:var(--accent-light);text-decoration:none;}
+.card-phone a:hover{text-decoration:underline;}
 .card-body{font-size:12px;color:var(--text2);line-height:1.6;margin-top:8px;}
 .card-actions{display:flex;align-items:center;gap:6px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;}
-.badge{font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px;white-space:nowrap;display:inline-block;}
-.badge-free{background:var(--success-bg);color:var(--success-text);}
-.badge-cheap{background:var(--info-bg);color:var(--info-text);}
-.badge-mid{background:#fdf3e3;color:#7a4a10;}
-.badge-luxury{background:#fdf0e6;color:#7a3010;}
-.badge-dist{background:var(--bg2);color:var(--text3);border:1px solid var(--border);}
-.badge-closing{background:var(--danger-bg);color:var(--danger);}
-.badge-warn{background:#fff8e6;color:#7a5010;border:1px solid #e8c870;}
-.cat-label{font-family:'Cinzel',serif;font-size:10px;color:var(--gold-dark);letter-spacing:0.1em;text-transform:uppercase;margin:1.5rem 0 0.6rem;padding-bottom:5px;border-bottom:1px solid var(--gold-border);}
+
+/* BADGES */
+.badge{font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px;white-space:nowrap;display:inline-block;font-family:'Cinzel',serif;letter-spacing:0.03em;}
+.badge-free{background:#0f2a1a;color:#70c890;border:1px solid #1a4a2a;}
+.badge-cheap{background:#1a1f3a;color:#90b8e8;border:1px solid #252d50;}
+.badge-mid{background:#2a1f10;color:#c8a060;border:1px solid #4a3a20;}
+.badge-luxury{background:#2a1a10;color:#e8a070;border:1px solid #4a2a18;}
+.badge-dist{background:var(--bg);color:var(--text3);border:1px solid var(--border);}
+.badge-closing{background:var(--danger-bg);color:var(--danger);border:1px solid #4a2020;}
+.badge-warn{background:#2a2010;color:#d0a040;border:1px solid #4a3820;}
+.badge-custom{background:var(--accent-pale);color:var(--accent-light);border:1px solid #3a2a60;}
+
+/* CAT LABELS */
+.cat-label{font-family:'Cinzel',serif;font-size:10px;color:var(--stone);letter-spacing:0.12em;text-transform:uppercase;margin:1.5rem 0 0.6rem;padding-bottom:5px;border-bottom:1px solid var(--border);}
 .cat-label:first-of-type{margin-top:0;}
+
+/* FILTER */
 .filter-row{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap;align-items:center;}
-.filter-label{font-size:11px;color:var(--text3);font-weight:500;}
-.filter-btn{padding:4px 11px;font-size:11px;border:1px solid var(--border);border-radius:20px;background:var(--bg2);color:var(--text2);cursor:pointer;transition:all 0.15s;}
-.filter-btn.on{background:var(--gold);border-color:var(--gold);color:#fff;}
-.tip-box{background:var(--gold-pale);border-left:3px solid var(--gold);border-radius:0 var(--card-radius) var(--card-radius) 0;padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--text2);line-height:1.65;}
-.tip-box strong{color:var(--gold-dark);}
+.filter-label{font-size:11px;color:var(--text3);font-weight:500;font-family:'Cinzel',serif;letter-spacing:0.04em;}
+.filter-btn{padding:4px 11px;font-size:11px;border:1px solid var(--border);border-radius:20px;background:var(--bg2);color:var(--text2);cursor:pointer;transition:all 0.15s;font-family:'Cinzel',serif;letter-spacing:0.03em;}
+.filter-btn:hover{border-color:var(--accent);color:var(--accent-light);}
+.filter-btn.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+/* TIP / WARN */
+.tip-box{background:#1a1530;border-left:3px solid var(--gold);border-radius:0 var(--card-radius) var(--card-radius) 0;padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--text2);line-height:1.65;}
+.tip-box strong{color:var(--stone-light);}
 .warn-box{background:var(--danger-bg);border-left:3px solid var(--danger-border);border-radius:0 var(--card-radius) var(--card-radius) 0;padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--danger);line-height:1.65;}
+
+/* PRICE TABLE */
 .price-table{width:100%;border-collapse:collapse;font-size:11px;margin-top:10px;}
 .price-table th{text-align:left;color:var(--text3);font-weight:500;padding:3px 8px 3px 0;border-bottom:1px solid var(--border);}
-.price-table td{padding:5px 8px 5px 0;color:var(--text2);border-bottom:1px solid #f0ece4;vertical-align:top;}
-.price-table td:first-child{color:var(--text);font-weight:500;}
+.price-table td{padding:5px 8px 5px 0;color:var(--text2);border-bottom:1px solid var(--border);vertical-align:top;}
+.price-table td:first-child{color:var(--stone-light);font-weight:500;}
 .price-table tr:last-child td{border-bottom:none;}
+
+/* ADD WIDGET */
 .add-widget{display:flex;align-items:center;gap:6px;flex-shrink:0;}
-.day-sel{font-size:11px;padding:4px 7px;border:1px solid var(--gold);border-radius:6px;background:var(--bg);color:var(--text);cursor:pointer;max-width:140px;font-family:'Lato',sans-serif;}
-.add-btn{font-size:11px;font-weight:500;padding:4px 10px;border:1px solid var(--gold);border-radius:6px;background:transparent;color:var(--gold);cursor:pointer;white-space:nowrap;transition:all 0.15s;font-family:'Lato',sans-serif;}
-.add-btn:hover{background:var(--gold);color:#fff;}
-.add-btn.added{background:var(--gold);color:#fff;}
-.flight-banner{background:#1a3a5c;border-radius:var(--card-radius);padding:12px 16px;margin-bottom:1rem;display:flex;gap:20px;flex-wrap:wrap;}
+.day-sel{font-size:11px;padding:4px 7px;border:1px solid var(--accent);border-radius:6px;background:var(--bg);color:var(--text);cursor:pointer;max-width:140px;font-family:'Cinzel',serif;letter-spacing:0.02em;}
+.add-btn{font-size:11px;font-weight:500;padding:5px 11px;border:1px solid var(--gold);border-radius:6px;background:transparent;color:var(--gold);cursor:pointer;white-space:nowrap;transition:all 0.15s;font-family:'Cinzel',serif;letter-spacing:0.03em;}
+.add-btn:hover{background:var(--gold);color:#1a0f04;}
+.add-btn.added{background:var(--gold);color:#1a0f04;}
+
+/* FLIGHT BANNER */
+.flight-banner{background:linear-gradient(135deg,#1a0a2e,#0d1a3a);border:1px solid var(--border);border-radius:var(--card-radius);padding:12px 16px;margin-bottom:1rem;display:flex;gap:20px;flex-wrap:wrap;}
 .flight-item{display:flex;align-items:center;gap:10px;}
 .flight-icon{font-size:20px;}
-.flight-text{font-size:12px;color:#b0d0f0;line-height:1.5;}
-.flight-text strong{color:#e8f4ff;font-size:13px;display:block;}
-.plan-instructions{font-size:12px;color:var(--text2);line-height:1.65;background:var(--bg2);padding:10px 14px;border-radius:var(--card-radius);margin-bottom:1.25rem;}
+.flight-text{font-size:12px;color:var(--text2);line-height:1.5;}
+.flight-text strong{color:var(--stone-light);font-size:13px;display:block;font-family:'Cinzel',serif;letter-spacing:0.04em;}
+
+/* PLAN */
+.plan-instructions{font-size:12px;color:var(--text2);line-height:1.65;background:var(--bg2);padding:10px 14px;border-radius:var(--card-radius);margin-bottom:1.25rem;border:1px solid var(--border);}
+.plan-instructions strong{color:var(--stone-light);}
 .day-cols{display:flex;flex-direction:column;gap:16px;}
 .day-block{border:1px solid var(--border);border-radius:var(--card-radius);overflow:hidden;}
-.day-head{background:#fdf8ee;padding:10px 1.25rem;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--gold-border);}
+.day-head{background:linear-gradient(90deg,#1e1535,#16112a);padding:10px 1.25rem;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);}
 .day-head-left{display:flex;flex-direction:column;}
-.day-title{font-family:'Cinzel',serif;font-size:12px;font-weight:600;color:#6a4010;letter-spacing:0.05em;}
-.day-note{font-size:11px;color:#a07030;margin-top:2px;}
-.clear-day-btn{font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;padding:3px 8px;border-radius:4px;transition:all 0.15s;}
+.day-title{font-family:'Cinzel',serif;font-size:12px;font-weight:600;color:var(--stone-light);letter-spacing:0.07em;}
+.day-note{font-size:11px;color:var(--text3);margin-top:2px;}
+.clear-day-btn{font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;padding:3px 8px;border-radius:4px;transition:all 0.15s;font-family:'Cinzel',serif;}
 .clear-day-btn:hover{color:var(--danger);background:var(--danger-bg);}
 .drop-zone{min-height:80px;padding:8px;transition:background 0.15s;}
-.drop-zone.drag-over{background:var(--gold-pale);outline:2px dashed var(--gold);outline-offset:-4px;border-radius:6px;}
+.drop-zone.drag-over{background:var(--accent-pale);outline:2px dashed var(--accent);outline-offset:-4px;border-radius:6px;}
 .drop-empty{font-size:12px;color:var(--text3);text-align:center;padding:20px 0;pointer-events:none;font-style:italic;}
-.plan-item{background:var(--bg);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:8px;padding:8px 10px;margin-bottom:6px;display:flex;align-items:center;gap:8px;cursor:grab;user-select:none;transition:box-shadow 0.15s,opacity 0.15s;}
+.plan-item{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:8px;padding:8px 10px;margin-bottom:6px;display:flex;align-items:center;gap:8px;cursor:grab;user-select:none;transition:box-shadow 0.15s,opacity 0.15s;}
 .plan-item:last-child{margin-bottom:0;}
-.plan-item:hover{box-shadow:0 2px 8px rgba(201,168,76,0.2);}
+.plan-item:hover{box-shadow:0 2px 12px rgba(139,108,200,0.3);}
 .plan-item.dragging{opacity:0.3;}
-.plan-item.drag-above{border-top:2px solid var(--gold);}
+.plan-item.drag-above{border-top:2px solid var(--accent);}
 .grip{color:var(--text3);cursor:grab;font-size:16px;flex-shrink:0;line-height:1;}
-.plan-num{font-size:11px;font-weight:600;color:var(--gold);min-width:16px;flex-shrink:0;text-align:right;}
+.plan-num{font-size:11px;font-weight:600;color:var(--gold);min-width:16px;flex-shrink:0;text-align:right;font-family:'Cinzel',serif;}
 .plan-body{flex:1;min-width:0;}
-.plan-name{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.plan-name{font-size:13px;font-weight:400;color:var(--stone-light);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Cinzel',serif;letter-spacing:0.02em;}
 .plan-cost{font-size:11px;color:var(--text3);margin-top:2px;}
 .remove-btn{font-size:18px;line-height:1;color:var(--text3);background:none;border:none;cursor:pointer;padding:0 2px;flex-shrink:0;transition:color 0.15s;}
 .remove-btn:hover{color:var(--danger);}
 .plan-footer{text-align:center;padding:1rem 0 0;}
-.clear-all-btn{font-size:12px;color:var(--text3);background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:4px;transition:all 0.15s;}
+.clear-all-btn{font-size:12px;color:var(--text3);background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:4px;transition:all 0.15s;font-family:'Cinzel',serif;letter-spacing:0.04em;}
 .clear-all-btn:hover{color:var(--danger);background:var(--danger-bg);}
+
+/* MAP TAB */
+#leaflet-map{width:100%;height:400px;border-radius:var(--card-radius);border:1px solid var(--border);margin-bottom:0.5rem;z-index:1;}
+.map-legend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:0.75rem;}
+.map-leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);font-family:'Cinzel',serif;letter-spacing:0.03em;}
+.map-leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+/* Leaflet popup dark theme */
+.leaflet-popup-content-wrapper{background:var(--bg2);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.5);}
+.leaflet-popup-content{color:var(--text);font-family:'Lato',sans-serif;font-size:12px;line-height:1.5;margin:10px 14px;}
+.leaflet-popup-content strong{font-family:'Cinzel',serif;font-size:12px;color:var(--stone-light);display:block;margin-bottom:3px;}
+.leaflet-popup-content .pop-sub{font-size:11px;color:var(--text3);}
+.leaflet-popup-content .pop-phone{font-size:11px;color:var(--accent-light);margin-top:3px;}
+.leaflet-popup-content .pop-phone a{color:var(--accent-light);text-decoration:none;}
+.leaflet-popup-tip{background:var(--bg2);}
+.leaflet-popup-close-button{color:var(--text3) !important;}
+.map-cat-list{display:flex;flex-direction:column;gap:6px;}
+.map-item{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;gap:10px;cursor:pointer;transition:all 0.15s;}
+.map-item:hover{background:var(--accent-pale);border-color:var(--accent);}
+.map-item-left{display:flex;flex-direction:column;}
+.map-item-name{font-size:13px;font-weight:500;color:var(--stone-light);font-family:'Cinzel',serif;letter-spacing:0.02em;}
+.map-item-sub{font-size:11px;color:var(--text3);margin-top:1px;}
+.map-item-phone{font-size:11px;color:var(--accent-light);margin-top:1px;}
+
+/* CUSTOM ACTIVITY FORM */
+.add-custom-section{background:var(--bg2);border:1px solid var(--accent);border-radius:var(--card-radius);padding:1rem 1.25rem;margin-bottom:1rem;}
+.add-custom-title{font-family:'Cinzel',serif;font-size:11px;color:var(--accent-light);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.75rem;}
+.form-row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;}
+.form-field{display:flex;flex-direction:column;gap:3px;flex:1;min-width:140px;}
+.form-field.full{flex:0 0 100%;}
+.form-label{font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;font-family:'Cinzel',serif;}
+.form-input{font-size:12px;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;width:100%;}
+.form-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(139,108,200,0.2);}
+.form-select{font-size:12px;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;width:100%;cursor:pointer;}
+.form-textarea{font-size:12px;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;width:100%;min-height:60px;resize:vertical;}
+.form-submit-row{display:flex;justify-content:flex-end;gap:8px;margin-top:4px;}
+.form-btn-cancel{font-size:12px;padding:6px 14px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--text3);cursor:pointer;font-family:'Cinzel',serif;letter-spacing:0.03em;}
+.form-btn-save{font-size:12px;font-weight:500;padding:6px 16px;border:none;border-radius:6px;background:var(--accent);color:#fff;cursor:pointer;font-family:'Cinzel',serif;letter-spacing:0.04em;transition:background 0.15s;}
+.form-btn-save:hover{background:var(--accent-light);}
+.toggle-add-btn{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:400;padding:7px 14px;border:1px dashed var(--accent);border-radius:var(--card-radius);background:transparent;color:var(--accent-light);cursor:pointer;font-family:'Cinzel',serif;letter-spacing:0.06em;transition:all 0.15s;margin-bottom:1rem;width:100%;justify-content:center;}
+.toggle-add-btn:hover{background:var(--accent-pale);}
+.delete-custom-btn{font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:4px;transition:all 0.15s;}
+.delete-custom-btn:hover{color:var(--danger);}
+
+/* RESPONSIVE */
 @media(max-width:600px){
   .tabs{gap:4px;padding:0.6rem 0.75rem 0;}
   .tab-btn{padding:5px 9px;font-size:11px;}
@@ -101,10 +195,9 @@ body{font-family:'Lato',sans-serif;background:var(--bg2);color:var(--text);min-h
   .add-widget{width:100%;}
   .day-sel{flex:1;max-width:none;}
   .add-btn{flex-shrink:0;}
-  .price-table{font-size:10px;}
-  .price-table th,.price-table td{padding:3px 4px 3px 0;}
-  .plan-name{font-size:12px;}
   .hero{height:150px;}
+  .sync-bar{gap:6px;}
+  .map-container iframe{height:280px;}
 }
 @media(max-width:400px){
   .tab-btn{padding:4px 7px;font-size:10px;}
@@ -116,13 +209,36 @@ body{font-family:'Lato',sans-serif;background:var(--bg2);color:var(--text);min-h
 <body>
 <div class="app">
 
+<!-- HERO -->
 <div class="hero">
 <svg viewBox="0 0 760 200" xmlns="http://www.w3.org/2000/svg">
-<rect width="760" height="200" fill="#1a0f04"/>
-<g opacity="0.12" stroke="#C9A84C" stroke-width="0.5" fill="none">
-<line x1="0" y1="33" x2="760" y2="33"/><line x1="0" y1="66" x2="760" y2="66"/><line x1="0" y1="99" x2="760" y2="99"/><line x1="0" y1="132" x2="760" y2="132"/><line x1="0" y1="165" x2="760" y2="165"/>
+<!-- Night sky gradient matching the photo's deep indigo/violet -->
+<defs>
+  <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#1a0a35"/>
+    <stop offset="40%" stop-color="#2d1060"/>
+    <stop offset="100%" stop-color="#16102a"/>
+  </linearGradient>
+  <radialGradient id="glow1" cx="35%" cy="60%" r="40%">
+    <stop offset="0%" stop-color="#8040c0" stop-opacity="0.3"/>
+    <stop offset="100%" stop-color="#8040c0" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="glow2" cx="65%" cy="55%" r="35%">
+    <stop offset="0%" stop-color="#6030a0" stop-opacity="0.25"/>
+    <stop offset="100%" stop-color="#6030a0" stop-opacity="0"/>
+  </radialGradient>
+</defs>
+<rect width="760" height="200" fill="url(#skyGrad)"/>
+<rect width="760" height="200" fill="url(#glow1)"/>
+<rect width="760" height="200" fill="url(#glow2)"/>
+<!-- Subtle cloud wisps in violet/mauve -->
+<g opacity="0.18" fill="none" stroke="#c090f0" stroke-width="0.5">
+<path d="M0,50 Q100,30 200,55 Q300,75 400,45 Q500,20 600,50 Q680,70 760,40"/>
+<path d="M0,80 Q120,60 250,80 Q380,100 500,70 Q620,45 760,65" opacity="0.6"/>
 </g>
-<g fill="#C9A84C" opacity="0.85">
+<!-- Stone-colored building silhouettes (warm amber glow from below) -->
+<g fill="#c8a870" opacity="0.75">
+<!-- Left cluster -->
 <rect x="28" y="140" width="20" height="4"/><rect x="30" y="144" width="16" height="48"/><rect x="24" y="188" width="28" height="8"/><ellipse cx="38" cy="140" rx="12" ry="6"/>
 <rect x="32" y="118" width="2" height="22"/><rect x="43" y="118" width="2" height="22"/><ellipse cx="33" cy="118" rx="3" ry="5"/><ellipse cx="44" cy="118" rx="3" ry="5"/>
 <rect x="58" y="118" width="22" height="4"/><rect x="60" y="122" width="18" height="70"/><rect x="54" y="188" width="30" height="8"/><ellipse cx="69" cy="118" rx="14" ry="7"/>
@@ -130,7 +246,8 @@ body{font-family:'Lato',sans-serif;background:var(--bg2);color:var(--text);min-h
 <rect x="96" y="128" width="20" height="4"/><rect x="98" y="132" width="16" height="58"/><rect x="92" y="188" width="28" height="8"/><ellipse cx="106" cy="128" rx="12" ry="6"/>
 <rect x="100" y="108" width="2" height="20"/><rect x="111" y="108" width="2" height="20"/><ellipse cx="101" cy="108" rx="3" ry="5"/><ellipse cx="112" cy="108" rx="3" ry="5"/>
 </g>
-<g fill="#C9A84C" opacity="0.85">
+<!-- Right cluster -->
+<g fill="#c8a870" opacity="0.75">
 <rect x="712" y="140" width="20" height="4"/><rect x="714" y="144" width="16" height="48"/><rect x="708" y="188" width="28" height="8"/><ellipse cx="722" cy="140" rx="12" ry="6"/>
 <rect x="716" y="118" width="2" height="22"/><rect x="727" y="118" width="2" height="22"/><ellipse cx="717" cy="118" rx="3" ry="5"/><ellipse cx="728" cy="118" rx="3" ry="5"/>
 <rect x="680" y="118" width="22" height="4"/><rect x="682" y="122" width="18" height="70"/><rect x="676" y="188" width="30" height="8"/><ellipse cx="691" cy="118" rx="14" ry="7"/>
@@ -138,26 +255,48 @@ body{font-family:'Lato',sans-serif;background:var(--bg2);color:var(--text);min-h
 <rect x="644" y="128" width="20" height="4"/><rect x="646" y="132" width="16" height="58"/><rect x="640" y="188" width="28" height="8"/><ellipse cx="654" cy="128" rx="12" ry="6"/>
 <rect x="648" y="108" width="2" height="20"/><rect x="659" y="108" width="2" height="20"/><ellipse cx="649" cy="108" rx="3" ry="5"/><ellipse cx="660" cy="108" rx="3" ry="5"/>
 </g>
-<g fill="#C9A84C" opacity="0.22">
+<!-- Star points in the violet sky -->
+<g fill="#e8d0ff" opacity="0.35">
 <polygon points="300,22 308,46 333,46 313,60 320,84 300,70 280,84 287,60 267,46 292,46"/>
 <polygon points="460,22 468,46 493,46 473,60 480,84 460,70 440,84 447,60 427,46 452,46"/>
 <polygon points="380,10 386,30 407,30 391,42 397,62 380,50 363,62 369,42 353,30 374,30"/>
 </g>
-<text x="380" y="102" text-anchor="middle" font-family="Georgia,serif" font-size="32" font-weight="bold" fill="#F5D87A" letter-spacing="8">CAESARS PALACE</text>
-<text x="380" y="128" text-anchor="middle" font-family="Georgia,serif" font-size="13" fill="#C9A84C" letter-spacing="4">LAS VEGAS · AUG 17 – 20</text>
-<text x="380" y="150" text-anchor="middle" font-family="Georgia,serif" font-size="11" fill="#8a6820" letter-spacing="3" font-style="italic">Brandi & Tony's Trip Guide</text>
-<g fill="#C9A84C" opacity="0.35"><rect x="220" y="166" width="320" height="1"/><polygon points="220,163 226,169 220,174"/><polygon points="540,163 534,169 540,174"/></g>
+<!-- Warm amber glow on building faces from lighting below -->
+<g opacity="0.15" fill="#d4901a">
+<rect x="24" y="160" width="28" height="28"/>
+<rect x="54" y="140" width="30" height="48"/>
+<rect x="92" y="148" width="28" height="40"/>
+<rect x="640" y="148" width="28" height="40"/>
+<rect x="676" y="140" width="30" height="48"/>
+<rect x="708" y="160" width="28" height="28"/>
+</g>
+<text x="380" y="102" text-anchor="middle" font-family="Georgia,serif" font-size="32" font-weight="bold" fill="#e8d8ff" letter-spacing="8">CAESARS PALACE</text>
+<text x="380" y="128" text-anchor="middle" font-family="Georgia,serif" font-size="13" fill="#c8a870" letter-spacing="4">LAS VEGAS · AUG 17 – 20</text>
+<text x="380" y="150" text-anchor="middle" font-family="Georgia,serif" font-size="11" fill="#8a78b0" letter-spacing="3" font-style="italic">Brandi &amp; Tony's Trip Guide</text>
+<g fill="#c8a870" opacity="0.4"><rect x="220" y="166" width="320" height="1"/><polygon points="220,163 226,169 220,174"/><polygon points="540,163 534,169 540,174"/></g>
 </svg>
 </div>
 
+<!-- SYNC BAR -->
+<div class="sync-bar">
+  <span class="sync-label">🔗 Trip code:</span>
+  <input type="text" class="sync-input" id="tripCode" placeholder="brandi-tony-aug-2026" maxlength="40"/>
+  <button class="sync-btn sync-btn-connect" onclick="connectSync()">Connect</button>
+  <button class="sync-btn sync-btn-clear" onclick="clearSyncData()" title="Clear all synced data">Reset</button>
+  <span class="sync-status" id="syncStatus">Not connected</span>
+</div>
+
+<!-- TABS -->
 <div class="tabs">
   <button class="tab-btn active" onclick="showTab('plan')" id="tab-plan">📋 My Plan</button>
-  <button class="tab-btn" onclick="showTab('free')" id="tab-free">⭐ Free things</button>
+  <button class="tab-btn" onclick="showTab('map')" id="tab-map">🗺 Map</button>
+  <button class="tab-btn" onclick="showTab('free')" id="tab-free">⭐ Free</button>
   <button class="tab-btn" onclick="showTab('buffet')" id="tab-buffet">🍽 Buffets</button>
   <button class="tab-btn" onclick="showTab('bites')" id="tab-bites">🌮 Cheap Bites</button>
   <button class="tab-btn" onclick="showTab('spa')" id="tab-spa">💆 Spas</button>
   <button class="tab-btn" onclick="showTab('shop')" id="tab-shop">🛍 Shopping</button>
   <button class="tab-btn" onclick="showTab('fremont')" id="tab-fremont">🚌 Fremont</button>
+  <button class="tab-btn" onclick="showTab('custom')" id="tab-custom">✏️ My Picks</button>
 </div>
 
 <!-- PLAN -->
@@ -166,9 +305,25 @@ body{font-family:'Lato',sans-serif;background:var(--bg2);color:var(--text);min-h
     <div class="flight-item"><span class="flight-icon">✈️</span><div class="flight-text"><strong>Arrive 2:35 PM · Mon Aug 17</strong>Land → Caesars · Check-in from ~4pm</div></div>
     <div class="flight-item"><span class="flight-icon">✈️</span><div class="flight-text"><strong>Depart 4:40 PM · Thu Aug 20</strong>Leave for airport by ~2:30pm</div></div>
   </div>
-  <div class="plan-instructions">Browse the other tabs and hit <strong>+ Add</strong> — pick your day right there in the dropdown. In your plan, grab the <strong>☰</strong> handle to drag items up or down within a day, or drag a card into a different day's zone to move it. Hit <strong>×</strong> to remove.</div>
+  <div class="plan-instructions">Browse the tabs, pick your day in the dropdown, and hit <strong>+ Add to Day</strong>. In My Plan, grab the <strong>☰</strong> handle to reorder within a day, or drag a card to a different day's zone. Hit <strong>×</strong> to remove. Changes sync to Tony's phone automatically.</div>
   <div class="day-cols" id="day-cols"></div>
   <div class="plan-footer"><button class="clear-all-btn" onclick="clearAll()">Clear entire plan</button></div>
+</div>
+
+<!-- MAP -->
+<div class="section" id="map">
+  <div class="tip-box"><strong>Your base:</strong> Caesars Palace is at 3570 S Las Vegas Blvd. Tap any pin for details. Color key: 🟡 Hotel/base · 🟣 Free · 🟠 Food · 🔵 Spa · 🟢 Shopping · 🔴 Fremont</div>
+  <div class="map-legend">
+    <span class="map-leg-item"><span class="map-leg-dot" style="background:#C9A84C"></span>Base</span>
+    <span class="map-leg-item"><span class="map-leg-dot" style="background:#8b6cc8"></span>Free</span>
+    <span class="map-leg-item"><span class="map-leg-dot" style="background:#e07830"></span>Food</span>
+    <span class="map-leg-item"><span class="map-leg-dot" style="background:#4090c8"></span>Spa</span>
+    <span class="map-leg-item"><span class="map-leg-dot" style="background:#40a870"></span>Shopping</span>
+    <span class="map-leg-item"><span class="map-leg-dot" style="background:#c84040"></span>Fremont</span>
+  </div>
+  <div id="leaflet-map"></div>
+  <p class="cat-label" style="margin-top:1rem;">All Locations</p>
+  <div class="map-cat-list" id="map-list"></div>
 </div>
 
 <!-- FREE -->
@@ -186,7 +341,7 @@ body{font-family:'Lato',sans-serif;background:var(--bg2);color:var(--text);min-h
 
 <!-- BUFFETS -->
 <div class="section" id="buffet">
-  <div class="warn-box"><strong>Heads up:</strong> Wicked Spoon and Bellagio Buffet are closing by Q2 2027 — open for your August trip but confirm before you go. Bellagio closes Sept 1, 2026.</div>
+  <div class="warn-box"><strong>Heads up:</strong> Wicked Spoon and Bellagio Buffet are closing — Bellagio closes Sept 1, 2026. Open for your August trip but confirm before you go.</div>
   <div class="tip-box"><strong>Money hack:</strong> Arrive 30 min before the brunch-to-dinner transition — pay brunch price, get dinner dishes. Book Bacchanal and Wynn in advance; weekend walk-in waits hit 90 min.</div>
   <p class="cat-label">Walking distance — on-site to 15 min</p>
   <div id="buffet-near"></div>
@@ -196,12 +351,12 @@ body{font-family:'Lato',sans-serif;background:var(--bg2);color:var(--text);min-h
 
 <!-- CHEAP BITES -->
 <div class="section" id="bites">
-  <div class="tip-box"><strong>What counts as cheap here:</strong> The Strip average for a sit-down meal runs $35–60+ per person. Everything listed here comes in well under that — most under $20, several under $10. These are genuinely good value for Vegas, not just "cheaper than a steakhouse."</div>
+  <div class="tip-box"><strong>What counts as cheap here:</strong> The Strip average for sit-down runs $35–60+/person. Everything here comes in well under — most under $20, several under $10.</div>
   <p class="cat-label">🌅 Breakfast</p>
   <div id="bites-breakfast"></div>
-  <p class="cat-label">🌮 Lunch & snacks</p>
+  <p class="cat-label">🌮 Lunch &amp; snacks</p>
   <div id="bites-lunch"></div>
-  <p class="cat-label">🍔 Dinner & late night</p>
+  <p class="cat-label">🍔 Dinner &amp; late night</p>
   <div id="bites-dinner"></div>
 </div>
 
@@ -229,196 +384,725 @@ body{font-family:'Lato',sans-serif;background:var(--bg2);color:var(--text);min-h
   <div id="fremont-food"></div>
 </div>
 
+<!-- CUSTOM / MY PICKS -->
+<div class="section" id="custom">
+  <div class="tip-box">Add anything not in the guide — restaurants Tony found, things Toby recommended, reservations you've already made. These sync across devices with your trip code.</div>
+  <button class="toggle-add-btn" id="toggleAddBtn" onclick="toggleAddForm()">＋ Add something</button>
+  <div id="addCustomForm" style="display:none;">
+    <div class="add-custom-section">
+      <div class="add-custom-title">New Activity or Spot</div>
+      <div class="form-row">
+        <div class="form-field" style="flex:2;min-width:200px;">
+          <label class="form-label">Name *</label>
+          <input type="text" class="form-input" id="cf-name" placeholder="e.g. Gordon Ramsay Fish & Chips"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Category</label>
+          <select class="form-select" id="cf-cat">
+            <option value="food">🍴 Food</option>
+            <option value="activity">🎲 Activity</option>
+            <option value="show">🎭 Show</option>
+            <option value="spa">💆 Spa</option>
+            <option value="shop">🛍 Shop</option>
+            <option value="other">📌 Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Location / Distance</label>
+          <input type="text" class="form-input" id="cf-sub" placeholder="e.g. LINQ · 5 min walk"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Cost</label>
+          <input type="text" class="form-input" id="cf-cost" placeholder="e.g. ~$25/person"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Phone (for reservations)</label>
+          <input type="tel" class="form-input" id="cf-phone" placeholder="e.g. (702) 555-1234"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Map Address / Landmark</label>
+          <input type="text" class="form-input" id="cf-address" placeholder="e.g. 3545 S Las Vegas Blvd"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field full">
+          <label class="form-label">Notes</label>
+          <textarea class="form-textarea" id="cf-notes" placeholder="Hours, reservation tips, what you want to try..."></textarea>
+        </div>
+      </div>
+      <div class="form-submit-row">
+        <button class="form-btn-cancel" onclick="toggleAddForm()">Cancel</button>
+        <button class="form-btn-save" onclick="saveCustomItem()">Save Activity</button>
+      </div>
+    </div>
+  </div>
+  <div id="custom-list"></div>
 </div>
 
+</div><!-- end .app -->
+
 <script>
-const DAYS=[
-  {id:'d0',label:'Monday Aug 17',note:'Arrive 2:35 PM · Evening only'},
-  {id:'d1',label:'Tuesday Aug 18',note:'Full day'},
-  {id:'d2',label:'Wednesday Aug 19',note:'Full day'},
-  {id:'d3',label:'Thursday Aug 20',note:'Must leave for airport by 2:30 PM'},
+// ==================== SUPABASE SETUP ====================
+const SUPABASE_URL = 'https://yrhmqtmmhosgsyxkbota.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_PGxuRPR6UAGYpDzzBPeyOQ_K8kQk_Zn';
+
+// localStorage is primary; Supabase is the sync layer. Works offline if Supabase unavailable.
+// NOTE: never use `const/let supabase` — that would shadow the CDN global on window.supabase
+
+let sbClient = null;
+let tripCode = '';
+let syncChannel = null;
+let isSyncing = false;
+
+function initSupabase() {
+  try {
+    const sb = window['supabase']; // bracket access avoids any linter/minifier renaming collision
+    if (sb && sb.createClient) {
+      sbClient = sb.createClient(SUPABASE_URL, SUPABASE_KEY);
+    }
+  } catch(e) {
+    console.log('Supabase not available, running offline');
+  }
+}
+
+// ==================== STATE ====================
+const DAYS = [
+  {id:'d0', label:'Monday Aug 17', note:'Arrive 2:35 PM · Evening only'},
+  {id:'d1', label:'Tuesday Aug 18', note:'Full day'},
+  {id:'d2', label:'Wednesday Aug 19', note:'Full day'},
+  {id:'d3', label:'Thursday Aug 20', note:'Must leave for airport by 2:30 PM'},
 ];
 
-const ALL_ITEMS=[
-  // FREE
-  {id:'f1',name:'Forum Shops + Fall of Atlantis show',cost:'Free',sub:'On-site',walk:'attached',type:'free',desc:'Roman-themed luxury mall attached directly to Caesars. Fall of Atlantis animatronic show runs free every hour noon–8pm (Thu–Mon). Great midday AC escape.'},
+let plan = {d0:[], d1:[], d2:[], d3:[]};
+let customItems = [];
+let dragSrc = null;
+
+// ==================== ALL ITEMS ====================
+const ALL_ITEMS = [
+  // FREE — ATTACHED
+  {id:'f1',name:'Forum Shops + Fall of Atlantis',cost:'Free',sub:'On-site',walk:'attached',type:'free',phone:'(702) 893-4800',desc:'Roman-themed luxury mall attached directly to Caesars. Fall of Atlantis animatronic show runs free every hour noon–8pm (Thu–Mon). Great midday AC escape.'},
   {id:'f2',name:'Fountain of the Gods & Trevi Fountain',cost:'Free',sub:'On-site',walk:'attached',type:'free',desc:'Roman fountain replicas inside Caesars — excellent photo stops while wandering the Forum Shops.'},
   {id:'f17',name:'Garden of the Gods Pool',cost:'Free for guests',sub:'On-site',walk:'attached',type:'free',desc:'Seven pools, 48 cabanas, 65 daybeds, swim-up blackjack. Get there at open to claim a lounger before they fill up.'},
   {id:'f18',name:'Venus Pool (adults-only)',cost:'Free for guests',sub:'On-site',walk:'attached',type:'free',desc:'Adults-only pool with an air-conditioned bar. More relaxed vibe than the main pool complex.'},
-  {id:'f3',name:'Bellagio Conservatory & Botanical Gardens',cost:'Free',sub:'Bellagio · 5 min walk',walk:'5min',type:'free',desc:'14,000 sq ft of seasonal floral installations. Open 24 hours. Go before 9am for best photos with almost no crowds.'},
+  // FREE — 5 MIN
+  {id:'f3',name:'Bellagio Conservatory & Botanical Gardens',cost:'Free',sub:'Bellagio · 5 min walk',walk:'5min',type:'free',phone:'(702) 693-7111',desc:'14,000 sq ft of seasonal floral installations. Open 24 hours. Go before 9am for best photos with almost no crowds.'},
   {id:'f4',name:'Bellagio Fountain Show',cost:'Free',sub:'5 min walk · Best at night',walk:'5min',type:'free',desc:'Every 30 min from 3pm, every 15 min 8pm–midnight. 1,200 nozzles, water reaches 460 ft. Best experienced after dark from the lakeside railing.'},
-  {id:'f5',name:'Chihuly glass ceiling (Bellagio lobby)',cost:'Free',sub:'Bellagio · 5 min walk',walk:'5min',type:'free',desc:'Fiori di Como — 2,000-piece hand-blown glass sculpture covering the entire Bellagio lobby ceiling. Free to walk in and view at any hour.'},
-  {id:'f6',name:"World's largest chocolate fountain",cost:'Free to view',sub:'Bellagio Patisserie · 5 min walk',walk:'5min',type:'free',desc:'14-foot tall chocolate waterfall right next to the Conservatory. Free to view, pastries available to buy.'},
-  {id:'f7',name:'Flamingo Wildlife Habitat',cost:'Free',sub:'Flamingo Hotel · 5 min walk',walk:'5min',type:'free',desc:'15-acre free garden with Chilean flamingos, koi ponds, turtles, parrots, and waterfalls. Daily keeper talk at 10am.'},
-  {id:'f8',name:'Eiffel Tower exterior + Paris walk-through',cost:'Free',sub:'Paris Las Vegas · 5 min walk',walk:'5min',type:'free',desc:'Free to photograph outside. Hotel also has a replica Pont Alexandre III bridge inside — free walk-through.'},
-  {id:'f15',name:'Eiffel Tower Viewing Deck',cost:'$29/person',sub:'Paris Las Vegas · 5 min walk',walk:'5min',type:'free',desc:'Best panoramic Strip views in this stretch, spectacular at night overlooking the Bellagio fountains. Open noon–midnight.'},
-  {id:'f9',name:'LINQ Promenade stroll',cost:'Free',sub:'5 min walk',walk:'5min',type:'free',desc:'Open-air promenade with 3D murals, choreographed light show, and free live entertainment most nights.'},
+  {id:'f5',name:'Chihuly Glass Ceiling',cost:'Free',sub:'Bellagio lobby · 5 min walk',walk:'5min',type:'free',desc:'Fiori di Como — 2,000-piece hand-blown glass sculpture covering the entire Bellagio lobby ceiling. Free to walk in and view at any hour.'},
+  {id:'f6',name:"World's Largest Chocolate Fountain",cost:'Free to view',sub:'Bellagio Patisserie · 5 min walk',walk:'5min',type:'free',desc:'14-foot tall chocolate waterfall right next to the Conservatory. Free to view, pastries available to buy.'},
+  {id:'f7',name:'Flamingo Wildlife Habitat',cost:'Free',sub:'Flamingo Hotel · 5 min walk',walk:'5min',type:'free',phone:'(702) 733-3111',desc:'15-acre free garden with Chilean flamingos, koi ponds, turtles, parrots, and waterfalls. Daily keeper talk at 10am.'},
+  {id:'f8',name:'Eiffel Tower Exterior + Paris Walk-Through',cost:'Free',sub:'Paris Las Vegas · 5 min walk',walk:'5min',type:'free',desc:'Free to photograph outside. Hotel also has a replica Pont Alexandre III bridge inside — free walk-through.'},
+  {id:'f15',name:'Eiffel Tower Viewing Deck',cost:'$29/person',sub:'Paris Las Vegas · 5 min walk',walk:'5min',type:'free',phone:'(877) 796-2096',desc:'Best panoramic Strip views in this stretch, spectacular at night overlooking the Bellagio fountains. Open noon–midnight.'},
+  {id:'f9',name:'LINQ Promenade Stroll',cost:'Free',sub:'5 min walk',walk:'5min',type:'free',desc:'Open-air promenade with 3D murals, choreographed light show, and free live entertainment most nights.'},
+  // FREE — 10 MIN
   {id:'f10',name:"Grand Canal Shoppes + St. Mark's Square",cost:'Free',sub:'Venetian Resort · 10 min walk',walk:'10min',type:'free',desc:"Quarter-mile Venice replica with indoor canal, painted sky ceiling, gondoliers singing, and free concerts in St. Mark's Square."},
-  {id:'f11',name:'Palazzo Waterfall Atrium + LOVE sculpture',cost:'Free',sub:'Venetian/Palazzo · 10 min walk',walk:'10min',type:'free',desc:'Colorful multi-story waterfall atrium and the giant LOVE lettering. Popular photo spots, free to walk through.'},
-  {id:'f16',name:'Madame Tussauds',cost:'~$30/person',sub:'Venetian · 10 min walk',walk:'10min',type:'free',desc:'Air-conditioned wax museum with Marvel 4D movie included. Great midday heat escape. Open daily 10am–8pm.'},
-  {id:'f12',name:"Gilley's Saloon line dancing",cost:'Free',sub:'Treasure Island · 10 min walk · Mon–Thu 7–8pm',walk:'10min',type:'free',desc:'Free line dancing lessons Mon–Thu 7–8pm. No cover charge, no drink minimum.'},
-  {id:'f13',name:'Wynn Botanical Gardens',cost:'Free',sub:'Wynn Las Vegas · 12–15 min walk',walk:'15min',type:'free',desc:'Free outdoor floral garden with large sculptural installations and a life-size carousel made from real flowers.'},
-  {id:'f14',name:'Lake of Dreams show',cost:'Free',sub:'Wynn · 12–15 min walk · Nightly from dusk',walk:'15min',type:'free',desc:'Free nightly show every 30 min from dusk — puppetry, light effects, 90-ft waterfall. Watch from Bar Parasol inside Wynn.'},
-  // BUFFETS
-  {id:'b1',name:'Bacchanal Buffet',cost:'$64.99–$84.99/person',sub:'Caesars Palace · On-site · Reserve in advance',walk:'near',desc:"Vegas's largest buffet — 250+ dishes across 9 live chef stations. Prime rib, crab legs, sushi, Mediterranean, Latin, Asian, and a full dessert hall.",table:`<table class="price-table"><tr><th>Session</th><th>Days</th><th>Hours</th><th>Price</th></tr><tr><td>Brunch</td><td>Thu–Mon</td><td>9am–1pm</td><td>$64.99</td></tr><tr><td>Crab brunch</td><td>Thu–Mon</td><td>1–3pm</td><td>$79.99</td></tr><tr><td>Dinner Sun–Thu</td><td>Sun–Thu</td><td>3–10pm</td><td>$79.99</td></tr><tr><td>Dinner Fri–Sat</td><td>Fri–Sat</td><td>3–10pm</td><td>$84.99</td></tr></table>`},
-  {id:'b2',name:'Bellagio Buffet',cost:'$54.99–$74.99/person',sub:'Bellagio · 5 min walk · Closing Sept 1, 2026',walk:'near',desc:'Still a beautiful room — seafood, international options, classic carving station. A historical experience while it lasts.',table:`<table class="price-table"><tr><th>Session</th><th>Days</th><th>Hours</th><th>Price</th></tr><tr><td>Brunch</td><td>Mon–Fri</td><td>8am–3pm</td><td>$54.99</td></tr><tr><td>Brunch</td><td>Sat–Sun</td><td>8am–1pm</td><td>$54.99</td></tr><tr><td>Dinner</td><td>Sat–Sun only</td><td>1–8pm</td><td>$74.99</td></tr></table>`},
-  {id:'b3',name:'Wicked Spoon',cost:'$47–55/person',sub:'Cosmopolitan · 10 min walk · Brunch only, closes 2pm',walk:'near',desc:'Individual small-plate portions — feels like a restaurant, not a trough. Snow crab, bone marrow, excellent desserts.',table:`<table class="price-table"><tr><th>Session</th><th>Days</th><th>Hours</th><th>Price</th></tr><tr><td>Brunch</td><td>Daily</td><td>8am–2pm</td><td>$47–55</td></tr></table>`},
-  {id:'b4',name:'Wynn Buffet',cost:'$59.99–$79.99/person',sub:'Wynn Las Vegas · 12–15 min walk · Reserve in advance',walk:'near',desc:'Most beautiful buffet room in Vegas — 120+ dishes, 16 stations, made-to-order sushi. Bottomless drinks add-on $30.99.',table:`<table class="price-table"><tr><th>Session</th><th>Days</th><th>Hours</th><th>Price</th></tr><tr><td>Gourmet brunch</td><td>Daily</td><td>8am–1pm</td><td>$59.99</td></tr><tr><td>Seafood dinner</td><td>Daily</td><td>1–9pm</td><td>$79.99</td></tr><tr><td>Bottomless drinks</td><td>Daily</td><td>—</td><td>+$30.99</td></tr></table>`},
-  {id:'b5',name:'Excalibur Buffet',cost:'$32.99–$43.99/person',sub:'~25 min by rideshare · Brunch only · No reservation',walk:'far',desc:'Best budget buffet on the Strip. 6 stations, omelet and crepe bars. Friday = seafood night with crab legs. Kids under 5 eat free.',table:`<table class="price-table"><tr><th>Session</th><th>Days</th><th>Hours</th><th>Price</th></tr><tr><td>Brunch</td><td>Mon–Thu</td><td>7am–2pm</td><td>$32.99</td></tr><tr><td>Brunch</td><td>Fri</td><td>7am–2pm</td><td>$38.99</td></tr><tr><td>Brunch + mimosas</td><td>Sat–Sun</td><td>7am–2pm</td><td>$43.99</td></tr></table>`},
-  {id:'b6',name:'Circus Circus Buffet',cost:'$29.95–$34.95/person',sub:'~25 min by rideshare · Weekends only',walk:'far',desc:'Cheapest buffet still running on the Strip. Weekends only. Pair with free acrobat shows inside Circus Circus.',table:`<table class="price-table"><tr><th>Session</th><th>Days</th><th>Hours</th><th>Price</th></tr><tr><td>Weekend brunch</td><td>Sat,Sun</td><td>Sat 7am–2pm/Sun 8am–noon</td><td>$29.95</td></tr><tr><td>Weekend dinner</td><td>Fri,Sat</td><td>Fri 5–9pm/Sat 4:30–10pm</td><td>$34.95</td></tr></table>`},
+  {id:'f11',name:'Palazzo Waterfall Atrium + LOVE Sculpture',cost:'Free',sub:'Venetian/Palazzo · 10 min walk',walk:'10min',type:'free',desc:'Colorful multi-story waterfall atrium and the giant LOVE lettering. Popular photo spots, free to walk through.'},
+  {id:'f16',name:'Madame Tussauds',cost:'~$30/person',sub:'Venetian · 10 min walk',walk:'10min',type:'free',phone:'(702) 862-7800',desc:'Air-conditioned wax museum with Marvel 4D movie included. Great midday heat escape. Open daily 10am–8pm.'},
+  {id:'f12',name:"Gilley's Saloon Line Dancing",cost:'Free',sub:'Treasure Island · 10 min walk · Mon–Thu 7–8pm',walk:'10min',type:'free',desc:'Free line dancing lessons Mon–Thu 7–8pm. No cover charge, no drink minimum.'},
+  // FREE — 15 MIN
+  {id:'f13',name:'Wynn Botanical Gardens',cost:'Free',sub:'Wynn Las Vegas · 12–15 min walk',walk:'15min',type:'free',phone:'(702) 770-7000',desc:'Free outdoor floral garden with large sculptural installations and a life-size carousel made from real flowers.'},
+  {id:'f14',name:'Lake of Dreams Show',cost:'Free',sub:'Wynn · 12–15 min walk · Nightly from dusk',walk:'15min',type:'free',desc:'Free nightly show every 30 min from dusk — puppetry, light effects, 90-ft waterfall. Watch from Bar Parasol inside Wynn.'},
+  // BUFFETS — NEAR
+  {id:'b1',name:'Bacchanal Buffet',cost:'$64.99–$84.99/person',sub:'Caesars Palace · On-site · Reserve in advance',walk:'near',phone:'(702) 731-7928',desc:"Vegas's largest buffet — 250+ dishes across 9 live chef stations. Prime rib, crab legs, sushi, Mediterranean, Latin, Asian, and a full dessert hall.",table:`<table class="price-table"><tr><th>Session</th><th>Days</th><th>Hours</th><th>Price</th></tr><tr><td>Brunch</td><td>Thu–Mon</td><td>9am–1pm</td><td>$64.99</td></tr><tr><td>Crab brunch</td><td>Thu–Mon</td><td>1–3pm</td><td>$79.99</td></tr><tr><td>Dinner Sun–Thu</td><td>Sun–Thu</td><td>3–10pm</td><td>$79.99</td></tr><tr><td>Dinner Fri–Sat</td><td>Fri–Sat</td><td>3–10pm</td><td>$84.99</td></tr></table>`},
+  {id:'b2',name:'Bellagio Buffet',cost:'$54.99–$74.99/person',sub:'Bellagio · 5 min walk · Closing Sept 1, 2026',walk:'near',phone:'(702) 693-7111',desc:'Still a beautiful room — seafood, international options, classic carving station. A historical experience while it lasts.',table:`<table class="price-table"><tr><th>Session</th><th>Days</th><th>Hours</th><th>Price</th></tr><tr><td>Brunch</td><td>Mon–Fri</td><td>8am–3pm</td><td>$54.99</td></tr><tr><td>Brunch</td><td>Sat–Sun</td><td>8am–1pm</td><td>$54.99</td></tr><tr><td>Dinner</td><td>Sat–Sun only</td><td>1–8pm</td><td>$74.99</td></tr></table>`},
+  {id:'b3',name:'Wicked Spoon',cost:'$47–55/person',sub:'Cosmopolitan · 10 min walk · Brunch only',walk:'near',phone:'(702) 698-7000',desc:'Individual small-plate portions — feels like a restaurant, not a trough. Snow crab, bone marrow, excellent desserts.',table:`<table class="price-table"><tr><th>Session</th><th>Days</th><th>Hours</th><th>Price</th></tr><tr><td>Brunch</td><td>Daily</td><td>8am–2pm</td><td>$47–55</td></tr></table>`},
+  {id:'b4',name:'Wynn Buffet',cost:'$59.99–$79.99/person',sub:'Wynn Las Vegas · 12–15 min walk · Reserve in advance',walk:'near',phone:'(702) 770-3463',desc:'Most beautiful buffet room in Vegas — 120+ dishes, 16 stations, made-to-order sushi. Bottomless drinks add-on $30.99.',table:`<table class="price-table"><tr><th>Session</th><th>Days</th><th>Hours</th><th>Price</th></tr><tr><td>Gourmet brunch</td><td>Daily</td><td>8am–1pm</td><td>$59.99</td></tr><tr><td>Seafood dinner</td><td>Daily</td><td>1–9pm</td><td>$79.99</td></tr><tr><td>Bottomless drinks</td><td>Daily</td><td>—</td><td>+$30.99</td></tr></table>`},
+  // BUFFETS — FAR
+  {id:'b5',name:'Excalibur Buffet',cost:'$32.99–$43.99/person',sub:'~25 min by rideshare · Brunch only · No reservation',walk:'far',phone:'(702) 597-7777',desc:'Best budget buffet on the Strip. 6 stations, omelet and crepe bars. Friday = seafood night with crab legs. Kids under 5 eat free.',table:`<table class="price-table"><tr><th>Session</th><th>Days</th><th>Hours</th><th>Price</th></tr><tr><td>Brunch</td><td>Mon–Thu</td><td>7am–2pm</td><td>$32.99</td></tr><tr><td>Brunch</td><td>Fri</td><td>7am–2pm</td><td>$38.99</td></tr><tr><td>Brunch + mimosas</td><td>Sat–Sun</td><td>7am–2pm</td><td>$43.99</td></tr></table>`},
+  {id:'b6',name:'Circus Circus Buffet',cost:'$29.95–$34.95/person',sub:'~25 min by rideshare · Weekends only',walk:'far',phone:'(702) 734-0410',desc:'Cheapest buffet still running on the Strip. Weekends only. Pair with free acrobat shows inside Circus Circus.',table:`<table class="price-table"><tr><th>Session</th><th>Days</th><th>Hours</th><th>Price</th></tr><tr><td>Weekend brunch</td><td>Sat,Sun</td><td>Sat 7am–2pm/Sun 8am–noon</td><td>$29.95</td></tr><tr><td>Weekend dinner</td><td>Fri,Sat</td><td>Fri 5–9pm/Sat 4:30–10pm</td><td>$34.95</td></tr></table>`},
   // CHEAP BITES — BREAKFAST
-  {id:'cb1',name:"Blondies Sports Bar — $5.99 Breakfast Special",cost:'From $5.99',sub:'Planet Hollywood/Miracle Mile · 12 min walk · Open 7am daily',meal:'breakfast',desc:"The cheapest sit-down breakfast on the Strip. The $5.99 breakfast isn't on the menu — you have to ask for it specifically. Eggs, bacon/sausage, potatoes. Also has $1.99 Bloody Marys and $20 bottomless mimosas. 60+ TVs if Tony wants to catch a game."},
-  {id:'cb2',name:'Hash House A Go Go — Breakfast',cost:'~$15–20/person',sub:'LINQ · 5 min walk · Open 7:30am–3pm',meal:'breakfast',desc:'Monster portions — one entrée easily shared between two people. Famous chicken and waffles. Best big breakfast before a pool day.'},
-  {id:'cb3',name:'Eggslut',cost:'~$15–18/person',sub:'Cosmopolitan 2nd floor · 10 min walk · 7am–2pm',meal:'breakfast',desc:'Trendy egg sandwiches and truffle tots. 15–20 min wait typical. One of the better breakfast values on the Strip.'},
-  {id:'cb4',name:'Nacho Daddy — Breakfast',cost:'~$12–15/person',sub:'3663 Las Vegas Blvd · 8 min walk · Fri–Sun from 9am',meal:'breakfast',desc:'All-day breakfast on weekends. Breakfast burritos, breakfast tacos, eggs with ranchero sauce. Bottomless mimosas and Bloody Marys. Great value Mexican-American breakfast.'},
-  {id:'cb5',name:'Cafe Americano',cost:'~$15–20/person',sub:'Caesars Palace · On-site · Open 24 hours',meal:'breakfast',desc:'Open all day every day. Reliable, accessible prices for an on-site casino restaurant. Good for a quick early breakfast before the pool.'},
-  // CHEAP BITES — LUNCH/SNACKS
+  {id:'cb1',name:"Blondies Sports Bar — $5.99 Breakfast Special",cost:'From $5.99',sub:'Planet Hollywood/Miracle Mile · 12 min walk · Open 7am daily',meal:'breakfast',phone:'(702) 737-0444',desc:"The cheapest sit-down breakfast on the Strip. The $5.99 breakfast isn't on the menu — ask for it specifically. Eggs, bacon/sausage, potatoes. Also $1.99 Bloody Marys and $20 bottomless mimosas."},
+  {id:'cb2',name:'Hash House A Go Go — Breakfast',cost:'~$15–20/person',sub:'LINQ · 5 min walk · Open 7:30am–3pm',meal:'breakfast',phone:'(702) 254-4646',desc:'Monster portions — one entrée easily shared between two people. Famous chicken and waffles. Best big breakfast before a pool day.'},
+  {id:'cb3',name:'Eggslut',cost:'~$15–18/person',sub:'Cosmopolitan 2nd floor · 10 min walk · 7am–2pm',meal:'breakfast',phone:'(702) 698-7900',desc:'Trendy egg sandwiches and truffle tots. 15–20 min wait typical. One of the better breakfast values on the Strip.'},
+  {id:'cb4',name:'Nacho Daddy — Breakfast',cost:'~$12–15/person',sub:'3663 Las Vegas Blvd · 8 min walk · Fri–Sun from 9am',meal:'breakfast',phone:'(702) 366-0400',desc:'All-day breakfast on weekends. Breakfast burritos, breakfast tacos, eggs with ranchero sauce. Bottomless mimosas and Bloody Marys.'},
+  {id:'cb5',name:'Cafe Americano',cost:'~$15–20/person',sub:'Caesars Palace · On-site · Open 24 hours',meal:'breakfast',phone:'(702) 731-7110',desc:'Open all day every day. Reliable, accessible prices for an on-site casino restaurant. Good for a quick early breakfast before the pool.'},
+  // CHEAP BITES — LUNCH
   {id:'cl1',name:'In-N-Out Burger',cost:'Under $10/person',sub:'LINQ Promenade · 5 min walk · Open until 1:30am weekends',meal:'lunch',desc:'Double-Double combo under $10. Shakes $3.20. Consistently the best value on the entire Strip. Animal style is worth it.'},
-  {id:'cl2',name:'Dirt Dog',cost:'~$12–18/person',sub:'3649 Las Vegas Blvd, Ste 617 · 8 min walk · 11am–midnight (2am Fri–Sat)',meal:'lunch',desc:"Nathan's all-beef dogs wrapped in center-cut bacon and loaded: Filthy dog (chorizo chili, cheddar, chipotle aioli), Mutt Dog (pastrami, carne asada, cheddar), and more. Most dogs $10–14 with fries $5–7. Rated 4.6/5 on TripAdvisor — one of the best-reviewed casual spots on the Strip."},
-  {id:'cl3',name:'Haute Doggery',cost:'~$12–20/person',sub:'LINQ Promenade · 5 min walk · 11am–10pm (11pm Fri–Sat)',meal:'lunch',desc:'Gourmet hot dogs — Chicago dog, mac and cheese dog, bacon-wrapped Tijuana dog, and poutine. Air-conditioned, great midday stop. Dogs range from simple to elaborate. Chili-cheese fries are a standout.'},
-  {id:'cl4',name:'Wahlburgers',cost:'~$20–28/person',sub:'Grand Bazaar Shops · 5 min walk · Open 8am–2am (4am Fri–Sat)',meal:'lunch',desc:"Celebrity-owned burger joint from the Wahlberg brothers. Burgers start at $17.95. Smash-style cheeseburger and Impossible Burger are the go-tos. Truffle tots are worth adding. ⚠️ Check recent reviews before going — a Feb 2026 food poisoning report was flagged on TripAdvisor."},
-  {id:'cl5',name:'Secret Pizza',cost:'~$10–15/person',sub:'Cosmopolitan 3rd floor · 10 min walk · Open 11am–4am',meal:'lunch',desc:'Hidden NY-style pizza — no sign, take elevator to floor 3, follow the record-lined hallway. Slice $6.50–7. Best late-night option on the Strip. Open until 4am daily.'},
-  {id:'cl6',name:'Nacho Daddy — Lunch',cost:'~$15–20/person',sub:'3663 Las Vegas Blvd · 8 min walk · 10:30am–2am (3am Thu–Sat)',meal:'lunch',desc:'Locally owned Mexican-American. Tacos $8, mini nachos $8, quesadillas $8 at happy hour (3–6pm Mon–Fri). Street tacos, gourmet nachos piled high with fresh toppings. Award-winning margaritas.'},
-  {id:'cl7',name:'Forum Food Court',cost:'~$12–18/person',sub:'Caesars Palace · On-site',meal:'lunch',desc:"Chicken Guy!, Bobby's Burgers by Bobby Flay, Halal Guys. Prices have crept up ($15+ most items) but convenient and solid for a quick no-walk lunch."},
-  {id:'cl8',name:'Pop Up Pizza',cost:'$5–7/slice',sub:'Near Cosmopolitan · 10 min walk',meal:'lunch',desc:'Best pizza slice value on the Strip. Around $5–7 a slice, all the classics. Quick, no-fuss, great for a midday snack between activities.'},
-  // CHEAP BITES — DINNER/LATE NIGHT
-  {id:'cd1',name:'Dirt Dog — Dinner',cost:'~$15–20/person',sub:'3649 Las Vegas Blvd, Ste 617 · 8 min walk · Open until 2am Fri–Sat',meal:'dinner',desc:'Great late-night option. Loaded bacon-wrapped dogs, garlic fries, and cold drinks. Under $20/person easily. One of the best late-night values on the Strip.'},
-  {id:'cd2',name:'Secret Pizza — Late Night',cost:'~$10–15/person',sub:'Cosmopolitan 3rd floor · 10 min walk · Open until 4am',meal:'dinner',desc:'The go-to after midnight. Slice + drink for around $12. The Cosmo hallway is lined with album covers and glows at night — part of the experience.'},
-  {id:'cd3',name:'Hash House A Go Go — Dinner',cost:'~$20–25/person',sub:'LINQ · 5 min walk · Closes 3pm weekdays, check weekend hours',meal:'dinner',desc:'Massive portions — a shared entrée genuinely feeds two people easily. Best value sit-down dinner in walking distance.'},
-  {id:'cd4',name:'Nacho Daddy — Dinner',cost:'~$18–25/person',sub:'3663 Las Vegas Blvd · 8 min walk · Open until 2am (3am Thu–Sat)',meal:'dinner',desc:'Late-night Mexican-American with gourmet nachos and a full bar. Tacos, burritos, loaded nachos. Open late, lively atmosphere, great margaritas.'},
-  {id:'cd5',name:'Margaritaville',cost:'~$20–28/person',sub:'Flamingo area · 5 min walk',meal:'dinner',desc:"Casual themed setting — think Chili's-level food in a fun environment. Solid burgers, sandwiches, and tacos at accessible Strip prices. Good low-stress dinner option."},
-  {id:'cd6',name:'Carmine\'s Italian',cost:'~$20–30/person (split)',sub:'Forum Shops · On-site · Family-style portions',meal:'dinner',desc:'Massive family-style portions — one entrée genuinely feeds two people. Best on-site dinner value. Italian classics done well.'},
-  {id:'cd7',name:'Cheesecake Factory',cost:'~$18–25/person (split)',sub:'Forum Shops · On-site',meal:'dinner',desc:"Split an entrée — portions are enormous. One of the more reliable value dinners for a big, filling meal without leaving Caesars."},
+  {id:'cl2',name:'Dirt Dog',cost:'~$12–18/person',sub:'3649 Las Vegas Blvd, Ste 617 · 8 min walk · 11am–midnight (2am Fri–Sat)',meal:'lunch',phone:'(702) 816-1171',desc:"Nathan's all-beef dogs wrapped in center-cut bacon and loaded. Filthy dog, Mutt Dog. Most dogs $10–14. Rated 4.6/5 on TripAdvisor."},
+  {id:'cl3',name:'Haute Doggery',cost:'~$12–20/person',sub:'LINQ Promenade · 5 min walk · 11am–10pm (11pm Fri–Sat)',meal:'lunch',desc:'Gourmet hot dogs — Chicago dog, mac and cheese dog, bacon-wrapped Tijuana dog, and poutine. Chili-cheese fries are a standout.'},
+  {id:'cl4',name:'Wahlburgers',cost:'~$20–28/person',sub:'Grand Bazaar Shops · 5 min walk · Open 8am–2am (4am Fri–Sat)',meal:'lunch',phone:'(702) 674-9245',desc:"Celebrity burger joint. Burgers from $17.95. Truffle tots are worth adding. ⚠️ Check recent reviews before going — a Feb 2026 food poisoning report was flagged."},
+  {id:'cl5',name:'Secret Pizza',cost:'~$10–15/person',sub:'Cosmopolitan 3rd floor · 10 min walk · Open 11am–4am',meal:'lunch',desc:'Hidden NY-style pizza — no sign, take elevator to floor 3, follow the record-lined hallway. Slice $6.50–7. Best late-night option on the Strip.'},
+  {id:'cl6',name:'Nacho Daddy — Lunch',cost:'~$15–20/person',sub:'3663 Las Vegas Blvd · 8 min walk · 10:30am–2am (3am Thu–Sat)',meal:'lunch',phone:'(702) 366-0400',desc:'Locally owned Mexican-American. Tacos $8, mini nachos $8, quesadillas $8 at happy hour (3–6pm Mon–Fri). Award-winning margaritas.'},
+  {id:'cl7',name:'Forum Food Court',cost:'~$12–18/person',sub:'Caesars Palace · On-site',meal:'lunch',desc:"Chicken Guy!, Bobby's Burgers by Bobby Flay, Halal Guys. Prices have crept up ($15+ most items) but convenient for a quick no-walk lunch."},
+  {id:'cl8',name:'Pop Up Pizza',cost:'$5–7/slice',sub:'Near Cosmopolitan · 10 min walk',meal:'lunch',desc:'Best pizza slice value on the Strip. Around $5–7 a slice. Quick, no-fuss, great for a midday snack between activities.'},
+  // CHEAP BITES — DINNER
+  {id:'cd1',name:'Dirt Dog — Dinner',cost:'~$15–20/person',sub:'3649 Las Vegas Blvd, Ste 617 · 8 min walk · Open until 2am Fri–Sat',meal:'dinner',phone:'(702) 816-1171',desc:'Great late-night option. Loaded bacon-wrapped dogs, garlic fries, and cold drinks. Under $20/person easily.'},
+  {id:'cd2',name:'Secret Pizza — Late Night',cost:'~$10–15/person',sub:'Cosmopolitan 3rd floor · 10 min walk · Open until 4am',meal:'dinner',desc:'The go-to after midnight. Slice + drink for around $12. The Cosmo hallway glows at night — part of the experience.'},
+  {id:'cd3',name:'Hash House A Go Go — Dinner',cost:'~$20–25/person',sub:'LINQ · 5 min walk · Check weekend hours',meal:'dinner',phone:'(702) 254-4646',desc:'Massive portions — a shared entrée genuinely feeds two people easily. Best value sit-down dinner in walking distance.'},
+  {id:'cd4',name:'Nacho Daddy — Dinner',cost:'~$18–25/person',sub:'3663 Las Vegas Blvd · 8 min walk · Open until 2am (3am Thu–Sat)',meal:'dinner',phone:'(702) 366-0400',desc:'Late-night Mexican-American with gourmet nachos and a full bar. Tacos, burritos, loaded nachos.'},
+  {id:'cd5',name:'Margaritaville',cost:'~$20–28/person',sub:'Flamingo area · 5 min walk',meal:'dinner',phone:'(702) 733-3302',desc:"Casual themed setting. Solid burgers, sandwiches, and tacos at accessible Strip prices. Good low-stress dinner option."},
+  {id:'cd6',name:"Carmine's Italian",cost:'~$20–30/person (split)',sub:'Forum Shops · On-site · Family-style',meal:'dinner',phone:'(702) 473-9700',desc:'Massive family-style portions — one entrée genuinely feeds two people. Best on-site dinner value. Italian classics done well.'},
+  {id:'cd7',name:'Cheesecake Factory',cost:'~$18–25/person (split)',sub:'Forum Shops · On-site',meal:'dinner',phone:'(702) 792-6888',desc:"Split an entrée — portions are enormous. One of the more reliable value dinners for a big, filling meal without leaving Caesars."},
   // SPAS
-  {id:'sp1',name:'Spa at the LINQ',cost:'From ~$100',sub:'LINQ Hotel · 5 min walk',tier:'cheap',desc:'Best budget spa in walking distance. Himalayan salt cave, eucalyptus steam room, whirlpool, hot tub. Intimate scale. Massages and facials available.'},
-  {id:'sp2',name:'BATHHOUSE Spa (W Las Vegas)',cost:'$50 Mon–Thu / $100 Fri–Sun',sub:'Near Mandalay Bay · Rideshare needed',tier:'cheap',desc:'Day pass gives access to hot tubs, steam rooms, and saunas without committing to a treatment. Best weekday spa value anywhere near the Strip.'},
+  {id:'sp1',name:'Spa at the LINQ',cost:'From ~$100',sub:'LINQ Hotel · 5 min walk',tier:'cheap',phone:'(702) 794-3310',desc:'Best budget spa in walking distance. Himalayan salt cave, eucalyptus steam room, whirlpool, hot tub. Intimate scale.'},
+  {id:'sp2',name:'BATHHOUSE Spa (W Las Vegas)',cost:'$50 Mon–Thu / $100 Fri–Sun',sub:'Near Mandalay Bay · Rideshare needed',tier:'cheap',phone:'(702) 730-5500',desc:'Day pass gives access to hot tubs, steam rooms, and saunas without committing to a treatment. Best weekday spa value anywhere near the Strip.'},
   {id:'sp3',name:'Spa at Serene Hotel',cost:'Under $100/hr massage',sub:'On the Strip · Rideshare recommended',tier:'cheap',desc:'Opened 2024. Praised for full-body massages under $100. More affordable than any of the resort spas.'},
-  {id:'sp4',name:'Qua Baths & Spa',cost:'From ~$180',sub:'Caesars Palace · On-site · Roman-themed',tier:'mid',desc:'Roman-themed luxury spa right inside your hotel. Multiple pools, Arctic ice room, laconicum, full treatment menu. The ultimate on-site splurge.'},
-  {id:'sp5',name:'Canyon Ranch Spa',cost:'From ~$150',sub:'Venetian Resort · 10 min walk',tier:'mid',desc:'134,000 sq ft spa at the Venetian. One of the largest spa facilities on the Strip. Access pass plus full treatment menu.'},
+  {id:'sp4',name:'Qua Baths & Spa',cost:'From ~$180',sub:'Caesars Palace · On-site · Roman-themed',tier:'mid',phone:'(866) 782-0655',desc:'Roman-themed luxury spa right inside your hotel. Multiple pools, Arctic ice room, laconicum, full treatment menu. The ultimate on-site splurge.'},
+  {id:'sp5',name:'Canyon Ranch Spa',cost:'From ~$150',sub:'Venetian Resort · 10 min walk',tier:'mid',phone:'(702) 414-3600',desc:'134,000 sq ft spa at the Venetian. One of the largest spa facilities on the Strip. Access pass plus full treatment menu.'},
   // SHOPPING
-  {id:'sh1',name:'Forum Shops at Caesars',cost:'Free to browse',sub:'Attached to hotel · Luxury',desc:"160+ stores — Versace, LV, Gucci, Jimmy Choo. Cheesecake Factory and Carmine's inside. Open 10am–9pm (10pm Fri–Sat)."},
-  {id:'sh2',name:'Grand Canal Shoppes',cost:'Free to browse',sub:'Venetian Resort · 10 min walk · Luxury',desc:"Venice-themed mall, 160+ stores. Free entertainment in St. Mark's Square while you browse."},
+  {id:'sh1',name:'Forum Shops at Caesars',cost:'Free to browse',sub:'Attached to hotel · Luxury',phone:'(702) 893-4800',desc:"160+ stores — Versace, LV, Gucci, Jimmy Choo. Cheesecake Factory and Carmine's inside. Open 10am–9pm (10pm Fri–Sat)."},
+  {id:'sh2',name:'Grand Canal Shoppes',cost:'Free to browse',sub:'Venetian Resort · 10 min walk · Luxury',phone:'(702) 414-4500',desc:"Venice-themed mall, 160+ stores. Free entertainment in St. Mark's Square while you browse."},
   {id:'sh3',name:'LINQ Promenade',cost:'Free to browse',sub:'5 min walk · Mid-range',desc:'Open-air promenade with accessible shops and dining. Great evening stroll.'},
-  {id:'sh4',name:'Fashion Show Mall',cost:'Free to browse',sub:"12 min walk · Macy's, Nordstrom, Dillard's",desc:'Best non-luxury shopping in walking distance. Air-conditioned, has a food court.'},
-  {id:'sh5',name:'Miracle Mile Shops',cost:'Free to browse',sub:'Planet Hollywood · 12 min walk',desc:'200+ stores at mid-range prices. Indoor rain show. Good variety.'},
+  {id:'sh4',name:'Fashion Show Mall',cost:'Free to browse',sub:"12 min walk · Macy's, Nordstrom, Dillard's",phone:'(702) 784-7000',desc:'Best non-luxury shopping in walking distance. Air-conditioned, has a food court.'},
+  {id:'sh5',name:'Miracle Mile Shops',cost:'Free to browse',sub:'Planet Hollywood · 12 min walk',phone:'(702) 866-0703',desc:'200+ stores at mid-range prices. Indoor rain show. Good variety.'},
   // FREMONT
-  {id:'fr1',name:'Fremont St. Viva Vision light show',cost:'Free',sub:'Downtown · Every hour after dark',desc:"World's largest LED canopy — $32M upgrade, 16.4M pixels. Shows hourly. Three live music stages."},
-  {id:'fr2',name:'SlotZilla Zipline',cost:'$30–$45',sub:'Fremont Street · Book in advance',desc:'Seated from 7 stories or superman-style from 11 stories along the 5-block canopy.'},
-  {id:'fr3',name:'Neon Museum night tour',cost:'~$25/person',sub:'Fremont area · Book ahead — sells out',desc:'Graveyard of vintage Las Vegas signage. Signs light up beautifully after dark.'},
-  {id:'fr4',name:'Mob Museum',cost:'~$32/person',sub:'Fremont area · Opens 9am · Allow 2–3 hrs',desc:'Excellent air-conditioned organized crime museum. Hands-on forensic exhibits.'},
-  {id:'fr5',name:'Golden Nugget casino hopping',cost:'Free to enter',sub:'Fremont Street',desc:'Anchor of Fremont — shark tank visible from inside. Much cheaper table minimums than the Strip.'},
-  {id:'fr6',name:"Tony Roma's dinner",cost:'~$16/person',sub:'Fremont area',desc:'Prime rib dinner around $16. Fremont prices noticeably cheaper than the Strip.'},
-  {id:'fr7',name:'Pop Up Pizza',cost:'$5–6/slice',sub:'Fremont area',desc:'Solid slice for under $6. Quick, cheap, and good.'},
+  {id:'fr1',name:'Fremont St. Viva Vision Light Show',cost:'Free',sub:'Downtown · Every hour after dark',desc:"World's largest LED canopy — $32M upgrade, 16.4M pixels. Shows hourly. Three live music stages."},
+  {id:'fr2',name:'SlotZilla Zipline',cost:'$30–$45',sub:'Fremont Street · Book in advance',phone:'(844) 947-8362',desc:'Seated from 7 stories or superman-style from 11 stories along the 5-block canopy.'},
+  {id:'fr3',name:'Neon Museum Night Tour',cost:'~$25/person',sub:'Fremont area · Book ahead — sells out',phone:'(702) 387-6366',desc:'Graveyard of vintage Las Vegas signage. Signs light up beautifully after dark.'},
+  {id:'fr4',name:'Mob Museum',cost:'~$32/person',sub:'Fremont area · Opens 9am · Allow 2–3 hrs',phone:'(702) 229-2734',desc:'Excellent air-conditioned organized crime museum. Hands-on forensic exhibits.'},
+  {id:'fr5',name:'Golden Nugget Casino Hopping',cost:'Free to enter',sub:'Fremont Street',phone:'(702) 385-7111',desc:'Anchor of Fremont — shark tank visible from inside. Much cheaper table minimums than the Strip.'},
+  {id:'fr6',name:"Tony Roma's Dinner",cost:'~$16/person',sub:'Fremont area',phone:'(702) 385-7111',desc:'Prime rib dinner around $16. Fremont prices noticeably cheaper than the Strip.'},
+  {id:'fr7',name:'Pop Up Pizza (Fremont)',cost:'$5–6/slice',sub:'Fremont area',desc:'Solid slice for under $6. Quick, cheap, and good.'},
 ];
 
-// STATE
-const plan={d0:[],d1:[],d2:[],d3:[]};
-let dragSrc=null;
+// ==================== STORAGE ====================
+function loadState() {
+  try {
+    const savedPlan = localStorage.getItem('lv-plan');
+    const savedCustom = localStorage.getItem('lv-custom');
+    if (savedPlan) plan = JSON.parse(savedPlan);
+    if (savedCustom) customItems = JSON.parse(savedCustom);
+  } catch(e) {}
+}
 
-// PLAN RENDER
-function renderPlan(){
-  const col=document.getElementById('day-cols');
-  col.innerHTML='';
-  DAYS.forEach(day=>{
-    const items=plan[day.id];
-    const div=document.createElement('div');
-    div.className='day-block';
-    div.innerHTML=`<div class="day-head"><div class="day-head-left"><div class="day-title">📅 ${day.label}</div><div class="day-note">${day.note}</div></div><button class="clear-day-btn" onclick="clearDay('${day.id}')">Clear day</button></div>
-    <div class="drop-zone" id="zone-${day.id}" ondragover="zoneDragOver(event,'${day.id}')" ondragleave="zoneDragLeave('${day.id}')" ondrop="zoneDrop(event,'${day.id}')">
-      ${items.length===0?'<div class="drop-empty">Add activities from the other tabs, or drag cards here from another day</div>':
-        items.map((item,i)=>`<div class="plan-item" id="pi-${day.id}-${i}" draggable="true" ondragstart="itemDragStart(event,'${day.id}',${i})" ondragend="itemDragEnd()" ondragover="itemDragOver(event,'${day.id}',${i})" ondrop="itemDrop(event,'${day.id}',${i})"><span class="grip" title="Drag to reorder">☰</span><span class="plan-num">${i+1}</span><div class="plan-body"><div class="plan-name">${item.name}</div><div class="plan-cost">${item.cost}</div></div><button class="remove-btn" onclick="removeItem('${day.id}',${i})" title="Remove">×</button></div>`).join('')}
-    </div>`;
+function saveState() {
+  try {
+    localStorage.setItem('lv-plan', JSON.stringify(plan));
+    localStorage.setItem('lv-custom', JSON.stringify(customItems));
+  } catch(e) {}
+  if (sbClient && tripCode) pushToSupabase();
+}
+
+// ==================== SUPABASE SYNC ====================
+async function connectSync() {
+  const input = document.getElementById('tripCode').value.trim().toLowerCase().replace(/\s+/g, '-');
+  if (!input) return;
+  tripCode = input;
+  document.getElementById('tripCode').value = input;
+  localStorage.setItem('lv-tripcode', input);
+
+  setSyncStatus('Connecting...', 'loading');
+
+  if (!sbClient) {
+    setSyncStatus('⚠️ Sync unavailable — saved locally', 'err');
+    return;
+  }
+
+  try {
+    // Pull existing data
+    const { data, error } = await sbClient
+      .from('trip_data')
+      .select('*')
+      .eq('trip_code', tripCode)
+      .single();
+
+    if (data && !error) {
+      // Merge: remote wins for plan/custom
+      if (data.plan_data) plan = JSON.parse(data.plan_data);
+      if (data.custom_items) customItems = JSON.parse(data.custom_items);
+      saveState();
+      renderPlan();
+      renderCustom();
+      refreshBtns();
+    }
+
+    // Subscribe to realtime changes
+    if (syncChannel) syncChannel.unsubscribe();
+    syncChannel = sbClient
+      .channel('trip-' + tripCode)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'trip_data',
+        filter: `trip_code=eq.${tripCode}`
+      }, (payload) => {
+        if (isSyncing) return;
+        const row = payload.new;
+        if (row && row.plan_data) plan = JSON.parse(row.plan_data);
+        if (row && row.custom_items) customItems = JSON.parse(row.custom_items);
+        localStorage.setItem('lv-plan', JSON.stringify(plan));
+        localStorage.setItem('lv-custom', JSON.stringify(customItems));
+        renderPlan();
+        renderCustom();
+        refreshBtns();
+        setSyncStatus('✓ Synced just now', '');
+      })
+      .subscribe();
+
+    setSyncStatus('✓ Connected — ' + input, '');
+  } catch(e) {
+    setSyncStatus('Saved locally only', 'err');
+  }
+}
+
+async function pushToSupabase() {
+  if (!sbClient || !tripCode) return;
+  isSyncing = true;
+  try {
+    await sbClient.from('trip_data').upsert({
+      trip_code: tripCode,
+      plan_data: JSON.stringify(plan),
+      custom_items: JSON.stringify(customItems),
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'trip_code' });
+    setSyncStatus('✓ Synced', '');
+  } catch(e) {
+    setSyncStatus('Sync error', 'err');
+  }
+  isSyncing = false;
+}
+
+async function clearSyncData() {
+  if (!confirm('Clear all plan data on this device? (This does not affect the other device.)')) return;
+  plan = {d0:[], d1:[], d2:[], d3:[]};
+  customItems = [];
+  saveState();
+  renderPlan();
+  renderCustom();
+  refreshBtns();
+}
+
+function setSyncStatus(msg, cls) {
+  const el = document.getElementById('syncStatus');
+  el.textContent = msg;
+  el.className = 'sync-status' + (cls ? ' ' + cls : '');
+}
+
+// ==================== PLAN RENDER ====================
+function renderPlan() {
+  const col = document.getElementById('day-cols');
+  col.innerHTML = '';
+  DAYS.forEach(day => {
+    const items = plan[day.id] || [];
+    const div = document.createElement('div');
+    div.className = 'day-block';
+    div.innerHTML = `
+      <div class="day-head">
+        <div class="day-head-left">
+          <div class="day-title">📅 ${day.label}</div>
+          <div class="day-note">${day.note}</div>
+        </div>
+        <button class="clear-day-btn" onclick="clearDay('${day.id}')">Clear day</button>
+      </div>
+      <div class="drop-zone" id="zone-${day.id}"
+        ondragover="zoneDragOver(event,'${day.id}')"
+        ondragleave="zoneDragLeave('${day.id}')"
+        ondrop="zoneDrop(event,'${day.id}')">
+        ${items.length === 0
+          ? '<div class="drop-empty">Add activities from the other tabs — or drag cards from another day</div>'
+          : items.map((item, i) => `
+            <div class="plan-item" id="pi-${day.id}-${i}" draggable="true"
+              ondragstart="itemDragStart(event,'${day.id}',${i})"
+              ondragend="itemDragEnd()"
+              ondragover="itemDragOver(event,'${day.id}',${i})"
+              ondrop="itemDrop(event,'${day.id}',${i})">
+              <span class="grip" title="Drag to reorder">☰</span>
+              <span class="plan-num">${i + 1}</span>
+              <div class="plan-body">
+                <div class="plan-name">${item.name}</div>
+                <div class="plan-cost">${item.cost}</div>
+              </div>
+              <button class="remove-btn" onclick="removeItem('${day.id}',${i})" title="Remove">×</button>
+            </div>
+          `).join('')
+        }
+      </div>`;
     col.appendChild(div);
   });
 }
 
-function removeItem(d,i){plan[d].splice(i,1);renderPlan();refreshBtns();}
-function clearDay(d){plan[d]=[];renderPlan();refreshBtns();}
-function clearAll(){Object.keys(plan).forEach(k=>plan[k]=[]);renderPlan();refreshBtns();}
-
-function itemDragStart(e,d,i){dragSrc={d,i};e.dataTransfer.effectAllowed='move';setTimeout(()=>{const el=document.getElementById(`pi-${d}-${i}`);if(el)el.classList.add('dragging');},0);}
-function itemDragEnd(){document.querySelectorAll('.plan-item').forEach(el=>el.classList.remove('dragging','drag-above'));document.querySelectorAll('.drop-zone').forEach(el=>el.classList.remove('drag-over'));dragSrc=null;}
-function itemDragOver(e,d,i){e.preventDefault();e.stopPropagation();if(!dragSrc)return;document.querySelectorAll('.plan-item').forEach(el=>el.classList.remove('drag-above'));const el=document.getElementById(`pi-${d}-${i}`);if(el)el.classList.add('drag-above');}
-function itemDrop(e,d,i){e.preventDefault();e.stopPropagation();if(!dragSrc)return;const{d:sd,i:si}=dragSrc;const item=plan[sd].splice(si,1)[0];const ti=(sd===d&&si<i)?i-1:i;plan[d].splice(ti,0,item);dragSrc=null;renderPlan();refreshBtns();}
-function zoneDragOver(e,d){e.preventDefault();document.getElementById('zone-'+d).classList.add('drag-over');}
-function zoneDragLeave(d){document.getElementById('zone-'+d).classList.remove('drag-over');}
-function zoneDrop(e,d){e.preventDefault();document.getElementById('zone-'+d).classList.remove('drag-over');if(!dragSrc)return;const{d:sd,i:si}=dragSrc;if(sd===d)return;const item=plan[sd].splice(si,1)[0];if(!plan[d].find(x=>x.id===item.id))plan[d].push(item);else plan[sd].splice(si,0,item);dragSrc=null;renderPlan();refreshBtns();}
-
-function addToPlan(itemId,selId){const dayId=document.getElementById(selId).value;const item=ALL_ITEMS.find(x=>x.id===itemId);if(!item)return;if(!plan[dayId].find(x=>x.id===itemId)){plan[dayId].push(item);renderPlan();refreshBtns();}}
-function isAdded(id){return Object.values(plan).flat().some(x=>x.id===id);}
-function refreshBtns(){document.querySelectorAll('.add-btn').forEach(btn=>{const a=isAdded(btn.dataset.id);btn.textContent=a?'Added ✓':'+ Add';btn.classList.toggle('added',a);});}
-
-function daySelectHtml(itemId){
-  const selId=`sel-${itemId}`;const a=isAdded(itemId);
-  const opts=DAYS.map(d=>`<option value="${d.id}">${d.label.replace(' Aug',' ')}</option>`).join('');
-  return `<div class="add-widget"><select class="day-sel" id="${selId}">${opts}</select><button class="add-btn ${a?'added':''}" data-id="${itemId}" onclick="addToPlan('${itemId}','${selId}')">${a?'Added ✓':'+ Add'}</button></div>`;
+function removeItem(d, i) { plan[d].splice(i, 1); saveState(); renderPlan(); refreshBtns(); }
+function clearDay(d) { plan[d] = []; saveState(); renderPlan(); refreshBtns(); }
+function clearAll() {
+  if (!confirm('Clear your entire plan?')) return;
+  Object.keys(plan).forEach(k => plan[k] = []);
+  saveState(); renderPlan(); refreshBtns();
 }
 
-function makeCard(item,badgeHtml,extraBody){
-  return `<div class="card" data-walk="${item.walk||''}" data-meal="${item.meal||''}" data-type="${item.type||''}"><div class="card-header"><div style="flex:1;min-width:0;"><div class="card-title">${item.name}</div><div class="card-sub">${item.sub||''}</div></div><div class="card-actions">${badgeHtml||''}${daySelectHtml(item.id)}</div></div><div class="card-body">${item.desc||''}${extraBody||''}</div></div>`;
+// ==================== DRAG & DROP ====================
+function itemDragStart(e, d, i) {
+  dragSrc = {d, i};
+  e.dataTransfer.effectAllowed = 'move';
+  setTimeout(() => { const el = document.getElementById(`pi-${d}-${i}`); if (el) el.classList.add('dragging'); }, 0);
+}
+function itemDragEnd() {
+  document.querySelectorAll('.plan-item').forEach(el => el.classList.remove('dragging', 'drag-above'));
+  document.querySelectorAll('.drop-zone').forEach(el => el.classList.remove('drag-over'));
+  dragSrc = null;
+}
+function itemDragOver(e, d, i) {
+  e.preventDefault(); e.stopPropagation();
+  if (!dragSrc) return;
+  document.querySelectorAll('.plan-item').forEach(el => el.classList.remove('drag-above'));
+  const el = document.getElementById(`pi-${d}-${i}`);
+  if (el) el.classList.add('drag-above');
+}
+function itemDrop(e, d, i) {
+  e.preventDefault(); e.stopPropagation();
+  if (!dragSrc) return;
+  const {d:sd, i:si} = dragSrc;
+  const item = plan[sd].splice(si, 1)[0];
+  const ti = (sd === d && si < i) ? i - 1 : i;
+  plan[d].splice(ti, 0, item);
+  dragSrc = null;
+  saveState(); renderPlan(); refreshBtns();
+}
+function zoneDragOver(e, d) { e.preventDefault(); document.getElementById('zone-' + d).classList.add('drag-over'); }
+function zoneDragLeave(d) { document.getElementById('zone-' + d).classList.remove('drag-over'); }
+function zoneDrop(e, d) {
+  e.preventDefault();
+  document.getElementById('zone-' + d).classList.remove('drag-over');
+  if (!dragSrc) return;
+  const {d:sd, i:si} = dragSrc;
+  if (sd === d) return;
+  const item = plan[sd].splice(si, 1)[0];
+  if (!plan[d].find(x => x.id === item.id)) plan[d].push(item);
+  else plan[sd].splice(si, 0, item);
+  dragSrc = null;
+  saveState(); renderPlan(); refreshBtns();
 }
 
-function buildAll(){
-  const wl={attached:'On-site','5min':'5 min','10min':'10 min','15min':'12–15 min'};
+// ==================== ADD TO PLAN ====================
+function addToPlan(itemId, selId) {
+  const dayId = document.getElementById(selId).value;
+  const item = getAllItems().find(x => x.id === itemId);
+  if (!item) return;
+  if (!plan[dayId].find(x => x.id === itemId)) {
+    plan[dayId].push({id: item.id, name: item.name, cost: item.cost});
+    saveState(); renderPlan(); refreshBtns();
+  }
+}
+function isAdded(id) { return Object.values(plan).flat().some(x => x.id === id); }
+function refreshBtns() {
+  document.querySelectorAll('.add-btn').forEach(btn => {
+    const a = isAdded(btn.dataset.id);
+    btn.textContent = a ? 'Added ✓' : '+ Add to Day';
+    btn.classList.toggle('added', a);
+  });
+}
+function getAllItems() { return [...ALL_ITEMS, ...customItems]; }
 
-  // Free — only items explicitly tagged type:'free'
-  document.getElementById('free-list').innerHTML=ALL_ITEMS.filter(i=>i.type==='free').map(i=>makeCard(i,
-    `<span class="badge ${i.cost==='Free'||i.cost.includes('guest')?'badge-free':'badge-cheap'}">${i.cost}</span><span class="badge badge-dist">${wl[i.walk]||i.walk}</span>`,'')).join('');
+// ==================== CARD BUILDER ====================
+function daySelectHtml(itemId) {
+  const selId = `sel-${itemId}`;
+  const a = isAdded(itemId);
+  const opts = DAYS.map(d => `<option value="${d.id}">${d.label.replace(' Aug', ' ')}</option>`).join('');
+  return `<div class="add-widget"><select class="day-sel" id="${selId}">${opts}</select><button class="add-btn ${a ? 'added' : ''}" data-id="${itemId}" onclick="addToPlan('${itemId}','${selId}')">${a ? 'Added ✓' : '+ Add to Day'}</button></div>`;
+}
 
-  // Buffets
-  document.getElementById('buffet-near').innerHTML=ALL_ITEMS.filter(i=>i.walk==='near').map(i=>{
-    const tc=['b1','b4'].includes(i.id)?'badge-luxury':['b2','b3'].includes(i.id)?'badge-mid':'badge-cheap';
-    const cl=['b2','b3'].includes(i.id)?'<span class="badge badge-closing">Closing soon</span>':'';
-    return makeCard(i,`<span class="badge ${tc}">${i.cost}</span>${cl}`,i.table||'');
+function phoneHtml(phone) {
+  if (!phone) return '';
+  return `<div class="card-phone">📞 <a href="tel:${phone.replace(/[^+\d]/g,'')}">${phone}</a></div>`;
+}
+
+function makeCard(item, badgeHtml, extraBody, isCustom) {
+  const border = isCustom ? ' custom-card' : '';
+  return `<div class="card${border}" data-walk="${item.walk||''}" data-meal="${item.meal||''}" data-type="${item.type||''}">
+    <div class="card-header">
+      <div style="flex:1;min-width:0;">
+        <div class="card-title">${item.name}</div>
+        <div class="card-sub">${item.sub || ''}</div>
+        ${phoneHtml(item.phone)}
+      </div>
+      <div class="card-actions">
+        ${badgeHtml || ''}
+        ${isCustom ? `<button class="delete-custom-btn" onclick="deleteCustomItem('${item.id}')" title="Delete">🗑</button>` : ''}
+        ${daySelectHtml(item.id)}
+      </div>
+    </div>
+    <div class="card-body">${item.desc || ''}${extraBody || ''}</div>
+  </div>`;
+}
+
+// ==================== BUILD ALL TABS ====================
+function buildAll() {
+  const wl = {attached:'On-site', '5min':'5 min', '10min':'10 min', '15min':'12–15 min'};
+
+  // FREE
+  document.getElementById('free-list').innerHTML = ALL_ITEMS.filter(i => i.type === 'free').map(i =>
+    makeCard(i, `<span class="badge ${i.cost==='Free'||i.cost.includes('guest')?'badge-free':'badge-cheap'}">${i.cost}</span><span class="badge badge-dist">${wl[i.walk]||i.walk}</span>`, '')
+  ).join('');
+
+  // BUFFETS
+  document.getElementById('buffet-near').innerHTML = ALL_ITEMS.filter(i => i.walk === 'near').map(i => {
+    const tc = ['b1','b4'].includes(i.id) ? 'badge-luxury' : ['b2','b3'].includes(i.id) ? 'badge-mid' : 'badge-cheap';
+    const cl = ['b2','b3'].includes(i.id) ? '<span class="badge badge-closing">Closing soon</span>' : '';
+    return makeCard(i, `<span class="badge ${tc}">${i.cost}</span>${cl}`, i.table || '');
   }).join('');
-  document.getElementById('buffet-far').innerHTML=ALL_ITEMS.filter(i=>i.walk==='far').map(i=>makeCard(i,`<span class="badge badge-cheap">${i.cost}</span>`,i.table||'')).join('');
+  document.getElementById('buffet-far').innerHTML = ALL_ITEMS.filter(i => i.walk === 'far').map(i =>
+    makeCard(i, `<span class="badge badge-cheap">${i.cost}</span>`, i.table || '')
+  ).join('');
 
-  // Cheap Bites
-  const warnIds=['cl4']; // wahlburgers warning
-  document.getElementById('bites-breakfast').innerHTML=ALL_ITEMS.filter(i=>i.meal==='breakfast').map(i=>{
-    const w=warnIds.includes(i.id)?'<span class="badge badge-warn">⚠️ Check reviews</span>':'';
-    return makeCard(i,`<span class="badge badge-cheap">${i.cost}</span>${w}`,'');
+  // CHEAP BITES
+  const warnIds = ['cl4'];
+  document.getElementById('bites-breakfast').innerHTML = ALL_ITEMS.filter(i => i.meal === 'breakfast').map(i => {
+    const w = warnIds.includes(i.id) ? '<span class="badge badge-warn">⚠️ Check reviews</span>' : '';
+    return makeCard(i, `<span class="badge badge-cheap">${i.cost}</span>${w}`, '');
   }).join('');
-  document.getElementById('bites-lunch').innerHTML=ALL_ITEMS.filter(i=>i.meal==='lunch').map(i=>{
-    const w=warnIds.includes(i.id)?'<span class="badge badge-warn">⚠️ Check reviews</span>':'';
-    return makeCard(i,`<span class="badge badge-cheap">${i.cost}</span>${w}`,'');
+  document.getElementById('bites-lunch').innerHTML = ALL_ITEMS.filter(i => i.meal === 'lunch').map(i => {
+    const w = warnIds.includes(i.id) ? '<span class="badge badge-warn">⚠️ Check reviews</span>' : '';
+    return makeCard(i, `<span class="badge badge-cheap">${i.cost}</span>${w}`, '');
   }).join('');
-  document.getElementById('bites-dinner').innerHTML=ALL_ITEMS.filter(i=>i.meal==='dinner').map(i=>makeCard(i,`<span class="badge badge-cheap">${i.cost}</span>`,'')).join('');
+  document.getElementById('bites-dinner').innerHTML = ALL_ITEMS.filter(i => i.meal === 'dinner').map(i =>
+    makeCard(i, `<span class="badge badge-cheap">${i.cost}</span>`, '')
+  ).join('');
 
-  // Spas
-  document.getElementById('spa-cheap').innerHTML=ALL_ITEMS.filter(i=>i.id.startsWith('sp')&&i.tier==='cheap').map(i=>makeCard(i,`<span class="badge badge-cheap">${i.cost}</span>`,'')).join('');
-  document.getElementById('spa-mid').innerHTML=ALL_ITEMS.filter(i=>i.id.startsWith('sp')&&i.tier==='mid').map(i=>makeCard(i,`<span class="badge badge-mid">${i.cost}</span>`,'')).join('');
+  // SPAS
+  document.getElementById('spa-cheap').innerHTML = ALL_ITEMS.filter(i => i.id.startsWith('sp') && i.tier === 'cheap').map(i =>
+    makeCard(i, `<span class="badge badge-cheap">${i.cost}</span>`, '')
+  ).join('');
+  document.getElementById('spa-mid').innerHTML = ALL_ITEMS.filter(i => i.id.startsWith('sp') && i.tier === 'mid').map(i =>
+    makeCard(i, `<span class="badge badge-mid">${i.cost}</span>`, '')
+  ).join('');
 
-  // Shopping
-  document.getElementById('shop-list').innerHTML=ALL_ITEMS.filter(i=>i.id.startsWith('sh')).map(i=>makeCard(i,`<span class="badge badge-dist">${i.sub.includes('Attached')||i.sub.includes('On-site')?'On-site':i.sub.includes('10 min')?'10 min':'12 min'}</span>`,'')).join('');
+  // SHOPPING
+  document.getElementById('shop-list').innerHTML = ALL_ITEMS.filter(i => i.id.startsWith('sh')).map(i =>
+    makeCard(i, `<span class="badge badge-dist">${i.sub.includes('Attached')||i.sub.includes('On-site')?'On-site':i.sub.includes('10 min')?'10 min':'12 min'}</span>`, '')
+  ).join('');
 
-  // Fremont
-  document.getElementById('fremont-acts').innerHTML=ALL_ITEMS.filter(i=>i.id.startsWith('fr')&&!['fr6','fr7'].includes(i.id)).map(i=>makeCard(i,`<span class="badge ${i.cost==='Free'?'badge-free':'badge-cheap'}">${i.cost}</span>`,'')).join('');
-  document.getElementById('fremont-food').innerHTML=ALL_ITEMS.filter(i=>['fr6','fr7'].includes(i.id)).map(i=>makeCard(i,`<span class="badge badge-cheap">${i.cost}</span>`,'')).join('');
+  // FREMONT
+  document.getElementById('fremont-acts').innerHTML = ALL_ITEMS.filter(i => i.id.startsWith('fr') && !['fr6','fr7'].includes(i.id)).map(i =>
+    makeCard(i, `<span class="badge ${i.cost==='Free'?'badge-free':'badge-cheap'}">${i.cost}</span>`, '')
+  ).join('');
+  document.getElementById('fremont-food').innerHTML = ALL_ITEMS.filter(i => ['fr6','fr7'].includes(i.id)).map(i =>
+    makeCard(i, `<span class="badge badge-cheap">${i.cost}</span>`, '')
+  ).join('');
+
+  // MAP LIST
+  buildMapList();
 }
 
-function showTab(id){
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  document.getElementById('tab-'+id).classList.add('active');
-  refreshBtns();
-}
+// ==================== MAP ====================
+const MAP_PIN_DATA = [
+  // BASE
+  {name:'Caesars Palace',sub:'3570 S Las Vegas Blvd · Your hotel',phone:'(702) 731-7110',note:'Home base',cat:'base',lat:36.1162,lng:-115.1745},
+  // FREE / SIGHTS
+  {name:'Bellagio',sub:'3600 S Las Vegas Blvd · 5 min walk',phone:'(702) 693-7111',note:'Fountain, Conservatory, Chihuly ceiling',cat:'free',lat:36.1126,lng:-115.1767},
+  {name:'Paris Las Vegas',sub:'3655 S Las Vegas Blvd · 5 min walk',phone:'(877) 796-2096',note:'Eiffel Tower viewing deck, photo ops',cat:'free',lat:36.1120,lng:-115.1703},
+  {name:'Flamingo Wildlife Habitat',sub:'3555 S Las Vegas Blvd · 5 min walk',phone:'(702) 733-3111',note:'Free flamingos, koi, keeper talk 10am',cat:'free',lat:36.1163,lng:-115.1688},
+  {name:'LINQ Promenade',sub:'3545 S Las Vegas Blvd · 5 min walk',note:'In-N-Out, Hash House, High Roller',cat:'free',lat:36.1194,lng:-115.1690},
+  {name:'Venetian / Palazzo',sub:'3355 S Las Vegas Blvd · 10 min walk',phone:'(702) 414-1000',note:'Grand Canal Shoppes, LOVE sculpture, gondolas',cat:'free',lat:36.1211,lng:-115.1697},
+  {name:'Wynn Las Vegas',sub:'3131 S Las Vegas Blvd · 12 min walk',phone:'(702) 770-7000',note:'Buffet, Botanical Gardens, Lake of Dreams',cat:'free',lat:36.1265,lng:-115.1661},
+  {name:'Treasure Island',sub:'3300 S Las Vegas Blvd · 10 min walk',note:"Gilley's free line dancing Mon–Thu 7pm",cat:'free',lat:36.1243,lng:-115.1669},
+  // FOOD
+  {name:'Cosmopolitan',sub:'3708 S Las Vegas Blvd · 10 min walk',phone:'(702) 698-7000',note:'Secret Pizza 3rd floor, Eggslut, Wicked Spoon',cat:'food',lat:36.1099,lng:-115.1728},
+  {name:'Hash House A Go Go',sub:'LINQ · 5 min walk',phone:'(702) 254-4646',note:'Monster portions — share an entrée',cat:'food',lat:36.1194,lng:-115.1692},
+  {name:'Nacho Daddy',sub:'3663 Las Vegas Blvd · 8 min walk',phone:'(702) 366-0400',note:'Best margaritas, late night until 3am',cat:'food',lat:36.1111,lng:-115.1712},
+  {name:"Carmine's Italian",sub:'Forum Shops · On-site',phone:'(702) 473-9700',note:'Family-style — one entrée feeds two',cat:'food',lat:36.1168,lng:-115.1757},
+  {name:"In-N-Out Burger",sub:'LINQ Promenade · 5 min walk',note:'Double-Double under $10. Animal style.',cat:'food',lat:36.1198,lng:-115.1688},
+  // SPAS
+  {name:'Qua Baths & Spa',sub:'Caesars Palace · On-site',phone:'(866) 782-0655',note:'Roman-themed, Arctic ice room, on-site splurge',cat:'spa',lat:36.1158,lng:-115.1750},
+  {name:'Spa at the LINQ',sub:'LINQ Hotel · 5 min walk',phone:'(702) 794-3310',note:'Best budget spa in walking distance',cat:'spa',lat:36.1192,lng:-115.1694},
+  {name:'Canyon Ranch Spa',sub:'Venetian · 10 min walk',phone:'(702) 414-3600',note:'134,000 sq ft — largest spa on the Strip',cat:'spa',lat:36.1210,lng:-115.1700},
+  // SHOPPING
+  {name:'Forum Shops at Caesars',sub:'Attached to hotel',phone:'(702) 893-4800',note:'160+ stores, Versace, LV, Gucci',cat:'shop',lat:36.1170,lng:-115.1760},
+  {name:'Fashion Show Mall',sub:'3200 S Las Vegas Blvd · 12 min walk',phone:'(702) 784-7000',note:"Best non-luxury mall — Macy's, Nordstrom",cat:'shop',lat:36.1284,lng:-115.1648},
+  {name:'Miracle Mile Shops',sub:'Planet Hollywood · 12 min walk',phone:'(702) 866-0703',note:'200+ stores, indoor rain show',cat:'shop',lat:36.1089,lng:-115.1719},
+  // FREMONT
+  {name:'Fremont Street Experience',sub:'425 Fremont St · ~15 min by rideshare',phone:'(702) 678-5600',note:'Light show hourly after dark, SlotZilla zipline',cat:'fremont',lat:36.1705,lng:-115.1426},
+  {name:'Neon Museum',sub:'770 Las Vegas Blvd N · Downtown',phone:'(702) 387-6366',note:'Book ahead — night tour sells out',cat:'fremont',lat:36.1763,lng:-115.1354},
+  {name:'Mob Museum',sub:'300 Stewart Ave · Downtown',phone:'(702) 229-2734',note:'Excellent, air-conditioned, allow 2–3 hrs',cat:'fremont',lat:36.1721,lng:-115.1408},
+];
 
-function filterFree(type,btn){
-  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
-  document.querySelectorAll('#free-list .card').forEach(c=>{
-    const w=c.dataset.walk;
-    const t=c.dataset.type;
-    if(t!=='free'){c.style.display='none';return;}
-    const show=type==='all'||(type==='attached'&&w==='attached')||(type==='5min'&&(w==='attached'||w==='5min'))||(type==='10min'&&(w==='attached'||w==='5min'||w==='10min'))||type==='15min';
-    c.style.display=show?'':'none';
+const PIN_COLORS = {
+  base:    '#C9A84C',
+  free:    '#8b6cc8',
+  food:    '#e07830',
+  spa:     '#4090c8',
+  shop:    '#40a870',
+  fremont: '#c84040',
+};
+
+let leafletMap = null;
+let mapMarkers = [];
+
+function makeCircleIcon(color) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" viewBox="0 0 28 36">
+    <ellipse cx="14" cy="33" rx="5" ry="2.5" fill="rgba(0,0,0,0.3)"/>
+    <path d="M14 2 C7.4 2 2 7.4 2 14 C2 22 14 34 14 34 C14 34 26 22 26 14 C26 7.4 20.6 2 14 2Z" fill="${color}" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>
+    <circle cx="14" cy="14" r="5" fill="rgba(255,255,255,0.35)"/>
+  </svg>`;
+  return L.divIcon({
+    html: svg,
+    iconSize: [28, 36],
+    iconAnchor: [14, 34],
+    popupAnchor: [0, -32],
+    className: ''
   });
 }
 
+function initLeafletMap() {
+  if (leafletMap) return;
+  leafletMap = L.map('leaflet-map', {
+    center: [36.1162, -115.1745],
+    zoom: 14,
+    zoomControl: true,
+  });
+
+  // Dark OSM tile layer
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/">CARTO</a>',
+    subdomains: 'abcd',
+    maxZoom: 19
+  }).addTo(leafletMap);
+
+  // Add all pins
+  MAP_PIN_DATA.forEach((spot, idx) => {
+    const color = PIN_COLORS[spot.cat] || '#888';
+    const icon = makeCircleIcon(color);
+    const phoneHtml = spot.phone
+      ? `<div class="pop-phone">📞 <a href="tel:${spot.phone.replace(/[^+\d]/g,'')}">${spot.phone}</a></div>`
+      : '';
+    const popup = `<strong>${spot.name}</strong><div class="pop-sub">${spot.sub}</div><div class="pop-sub" style="margin-top:3px;color:var(--text2)">${spot.note}</div>${phoneHtml}`;
+    const marker = L.marker([spot.lat, spot.lng], {icon})
+      .addTo(leafletMap)
+      .bindPopup(popup, {maxWidth: 240});
+    mapMarkers.push({marker, spot});
+  });
+
+  // Build the list below the map
+  buildMapList();
+}
+
+function flyToPin(idx) {
+  if (!leafletMap) return;
+  const {marker, spot} = mapMarkers[idx];
+  leafletMap.flyTo([spot.lat, spot.lng], 16, {duration: 0.8});
+  marker.openPopup();
+}
+
+function buildMapList() {
+  document.getElementById('map-list').innerHTML = MAP_PIN_DATA.map((spot, idx) => {
+    const color = PIN_COLORS[spot.cat] || '#888';
+    return `<div class="map-item" onclick="flyToPin(${idx})">
+      <div class="map-item-left">
+        <div class="map-item-name"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${color};margin-right:6px;vertical-align:middle;"></span>${spot.name}</div>
+        <div class="map-item-sub">${spot.sub}</div>
+        ${spot.phone ? `<div class="map-item-phone">📞 <a href="tel:${spot.phone.replace(/[^+\d]/g,'')}" onclick="event.stopPropagation()">${spot.phone}</a></div>` : ''}
+      </div>
+      <div style="font-size:11px;color:var(--text3);text-align:right;max-width:100px;">${spot.note}</div>
+    </div>`;
+  }).join('');
+}
+
+function openInMaps(name) {
+  const query = encodeURIComponent(name + ' Las Vegas');
+  window.open(`https://maps.google.com/?q=${query}`, '_blank');
+}
+
+// ==================== CUSTOM ACTIVITIES ====================
+function toggleAddForm() {
+  const form = document.getElementById('addCustomForm');
+  const btn = document.getElementById('toggleAddBtn');
+  const isOpen = form.style.display !== 'none';
+  form.style.display = isOpen ? 'none' : 'block';
+  btn.textContent = isOpen ? '＋ Add something' : '✕ Cancel';
+}
+
+function saveCustomItem() {
+  const name = document.getElementById('cf-name').value.trim();
+  if (!name) { document.getElementById('cf-name').focus(); return; }
+
+  const cats = {food:'🍴',activity:'🎲',show:'🎭',spa:'💆',shop:'🛍',other:'📌'};
+  const cat = document.getElementById('cf-cat').value;
+  const emoji = cats[cat] || '📌';
+
+  const item = {
+    id: 'cx-' + Date.now(),
+    name: emoji + ' ' + name,
+    sub: document.getElementById('cf-sub').value.trim(),
+    cost: document.getElementById('cf-cost').value.trim() || 'TBD',
+    phone: document.getElementById('cf-phone').value.trim(),
+    address: document.getElementById('cf-address').value.trim(),
+    desc: document.getElementById('cf-notes').value.trim(),
+    custom: true,
+    type: 'custom'
+  };
+
+  customItems.push(item);
+  saveState();
+  renderCustom();
+
+  // Reset form
+  ['cf-name','cf-sub','cf-cost','cf-phone','cf-address','cf-notes'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  toggleAddForm();
+}
+
+function deleteCustomItem(id) {
+  if (!confirm('Remove this activity?')) return;
+  customItems = customItems.filter(x => x.id !== id);
+  // Also remove from plan
+  Object.keys(plan).forEach(d => {
+    plan[d] = plan[d].filter(x => x.id !== id);
+  });
+  saveState();
+  renderCustom();
+  renderPlan();
+  refreshBtns();
+}
+
+function renderCustom() {
+  const el = document.getElementById('custom-list');
+  if (customItems.length === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:2rem 0;font-size:13px;color:var(--text3);font-style:italic;">Nothing added yet. Hit the button above to start.</div>';
+    return;
+  }
+  el.innerHTML = customItems.map(item =>
+    makeCard(item, `<span class="badge badge-custom">My pick</span>`, '', true)
+  ).join('');
+}
+
+// ==================== FILTER ====================
+function filterFree(type, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('#free-list .card').forEach(c => {
+    const w = c.dataset.walk;
+    const t = c.dataset.type;
+    if (t !== 'free') { c.style.display = 'none'; return; }
+    const show = type === 'all'
+      || (type === 'attached' && w === 'attached')
+      || (type === '5min' && (w === 'attached' || w === '5min'))
+      || (type === '10min' && (w === 'attached' || w === '5min' || w === '10min'))
+      || type === '15min';
+    c.style.display = show ? '' : 'none';
+  });
+}
+
+// ==================== TABS ====================
+function showTab(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById('tab-' + id).classList.add('active');
+  refreshBtns();
+  if (id === 'map') {
+    setTimeout(() => {
+      initLeafletMap();
+      if (leafletMap) leafletMap.invalidateSize();
+    }, 50);
+  }
+}
+
+// ==================== INIT ====================
+initSupabase();
+loadState();
 buildAll();
 renderPlan();
+renderCustom();
+refreshBtns();
+
+// Restore trip code if saved
+const savedCode = localStorage.getItem('lv-tripcode');
+if (savedCode) {
+  document.getElementById('tripCode').value = savedCode;
+  connectSync();
+}
 </script>
 </body>
 </html>
